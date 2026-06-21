@@ -43,6 +43,13 @@ const {
 } = require('./middleware/requestLogger');
 const publicDir = path.join(__dirname, '..', 'public');
 const assetManifestPath = path.join(publicDir, 'asset-manifest.json');
+const {
+  PRODUCT_IMAGE_UPLOAD_DIR,
+  PRODUCT_IMAGE_PUBLIC_PATH,
+  PROFILE_IMAGE_UPLOAD_DIR,
+  PROFILE_IMAGE_PUBLIC_PATH
+} = require('./config/productLimits');
+
 
 function loadAssetManifest() {
   try {
@@ -193,6 +200,31 @@ app.use(
 
 app.use(attachRequestId);
 app.use(compression());
+function setUploadStaticHeaders(res) {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Cache-Control', 'private, max-age=3600');
+}
+
+[
+  PRODUCT_IMAGE_UPLOAD_DIR,
+  PROFILE_IMAGE_UPLOAD_DIR
+].forEach((dir) => {
+  fs.mkdirSync(dir, { recursive: true });
+});
+
+app.use(
+  PRODUCT_IMAGE_PUBLIC_PATH,
+  express.static(PRODUCT_IMAGE_UPLOAD_DIR, {
+    setHeaders: setUploadStaticHeaders
+  })
+);
+
+app.use(
+  PROFILE_IMAGE_PUBLIC_PATH,
+  express.static(PROFILE_IMAGE_UPLOAD_DIR, {
+    setHeaders: setUploadStaticHeaders
+  })
+);
 app.use(express.static(publicDir, {
   setHeaders: setStaticCacheHeaders
 }));
