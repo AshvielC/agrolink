@@ -1,0 +1,65 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Produce movement</p>
+        <h1>Stock card: <%= product.name %></h1>
+        <p>Track quantity movements, reservations, restorations, and balances for this product.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/farmer/products">Back to products</a>
+        <button class="btn btn-secondary" type="button" data-print>Print stock card</button>
+      </div>
+    </div>
+
+    <article class="card detail-card">
+      <dl class="product-meta order-meta">
+        <div><dt>Current balance</dt><dd><strong><%= product.quantity %> <%= product.unit %></strong></dd></div>
+        <div><dt>Status</dt><dd><%= formatStatus(product.status) %></dd></div>
+        <div><dt>Unit price</dt><dd><%= formatMoney(product.price, product.currency || 'FJD') %> / <%= product.unit %></dd></div>
+        <div><dt>Location</dt><dd><%= product.location %></dd></div>
+      </dl>
+    </article>
+
+    <% if (!movements.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">📦</span>
+        <h2>No stock movements recorded yet.</h2>
+        <p class="muted-text">Movements will appear when quantities are listed, adjusted, reserved, restored, or completed.</p>
+      </div>
+    <% } else { %>
+      <div class="table-card">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th scope="col">Date</th>
+              <th scope="col">Movement</th>
+              <th scope="col">Change</th>
+              <th scope="col">Balance</th>
+              <th scope="col">Reference</th>
+              <th scope="col">Note</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% movements.forEach((movement) => { %>
+              <tr>
+                <td><%= formatDateTime(movement.createdAt) %></td>
+                <td><%= formatStatus(movement.movementType) %></td>
+                <td><%= movement.quantityChange > 0 ? '+' : '' %><%= movement.quantityChange %> <%= movement.unit || product.unit %></td>
+                <td><strong><%= movement.quantityAfter %> <%= movement.unit || product.unit %></strong></td>
+                <td>
+                  <% if (movement.order?._id) { %>
+                    <a class="subtle-link" href="/dashboard/farmer/orders/<%= movement.order._id %>"><%= orderReference(movement.order) %></a>
+                  <% } else { %>
+                    —
+                  <% } %>
+                </td>
+                <td><%= movement.note || '—' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>

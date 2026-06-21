@@ -1,0 +1,80 @@
+<section class="dashboard-section <%= printMode ? 'print-page' : '' %>">
+  <div class="container">
+    <div class="dashboard-hero print-hide">
+      <div>
+        <p class="eyebrow">Message</p>
+        <h1><%= message.subject %></h1>
+        <p>Review this message, reply, or print it for your records.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/messages">Inbox</a>
+        <a class="btn btn-secondary" href="/dashboard/messages/sent">Sent</a>
+        <a class="btn btn-primary" href="/dashboard/messages/<%= message._id %>/reply">Reply</a>
+        <a class="btn btn-secondary" href="/dashboard/messages/<%= message._id %>/print">Print view</a>
+        <% if (currentUser && currentUser.role !== 'admin') { %>
+          <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=message&targetId=<%= message._id %>">Report message</a>
+        <% } %>
+        <button class="btn btn-secondary" type="button" data-print>Print / Save PDF</button>
+      </div>
+    </div>
+
+    <article class="receipt-card message-detail-card">
+      <div class="receipt-header">
+        <div>
+          <p class="eyebrow">Message record</p>
+          <h1><%= message.subject %></h1>
+          <p class="muted-text">Created <%= formatDateTime(message.createdAt) %></p>
+        </div>
+        <div class="receipt-status">
+          <span class="status-pill <%= message.readAt ? 'status-completed' : 'status-pending' %>"><%= message.readAt ? 'Read' : 'Unread' %></span>
+        </div>
+      </div>
+
+      <div class="receipt-grid">
+        <section>
+          <h2>From</h2>
+          <p><strong><%= message.sender?.farmerProfile?.farmName || message.sender?.buyerProfile?.organization || message.sender?.name || message.senderSnapshot?.name || 'User' %></strong></p>
+          <p><%= message.sender?.email || message.senderSnapshot?.email || 'No email recorded' %></p>
+          <p><%= formatStatus(message.senderRole) %></p>
+        </section>
+        <section>
+          <h2>To</h2>
+          <p><strong><%= message.recipient?.farmerProfile?.farmName || message.recipient?.buyerProfile?.organization || message.recipient?.name || message.recipientSnapshot?.name || 'User' %></strong></p>
+          <p><%= message.recipient?.email || message.recipientSnapshot?.email || 'No email recorded' %></p>
+          <p><%= formatStatus(message.recipientRole) %></p>
+        </section>
+      </div>
+
+      <% if (message.orderSnapshot?.reference || message.productSnapshot?.name) { %>
+        <section class="receipt-section">
+          <h2>Related record</h2>
+          <dl class="product-meta order-meta">
+            <% if (message.orderSnapshot?.reference) { %>
+              <div><dt>Order</dt><dd><%= message.orderSnapshot.reference %></dd></div>
+            <% } %>
+            <% if (message.orderSnapshot?.status) { %>
+              <div><dt>Order status</dt><dd><%= formatStatus(message.orderSnapshot.status) %></dd></div>
+            <% } %>
+            <% if (message.productSnapshot?.name) { %>
+              <div><dt>Product</dt><dd><%= message.productSnapshot.name %></dd></div>
+            <% } %>
+            <% if (message.productSnapshot?.location) { %>
+              <div><dt>Location</dt><dd><%= message.productSnapshot.location %></dd></div>
+            <% } %>
+          </dl>
+        </section>
+      <% } %>
+
+      <section class="receipt-section">
+        <h2>Message</h2>
+        <div class="note-box message-body-box">
+          <p><%= message.body %></p>
+        </div>
+      </section>
+    </article>
+  </div>
+</section>
+
+<% if (printMode) { %>
+  <div data-auto-print="true" hidden></div>
+<% } %>

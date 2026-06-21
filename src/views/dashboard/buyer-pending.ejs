@@ -1,0 +1,24 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="auth-card text-center">
+      <p class="eyebrow">Approval pending</p>
+      <h1>Your buyer account is waiting for admin approval.</h1>
+      <p class="muted-text">You can log in and update your profile, but marketplace ordering and farmer contact tools will unlock after an administrator approves your documents and account.</p>
+      <div class="order-card text-left">
+        <h2>Verification status</h2>
+        <dl class="product-meta order-meta">
+          <div><dt>Overall documents</dt><dd><span class="status-pill status-<%= user?.documentReviewStatus || 'pending' %>"><%= formatStatus(user?.documentReviewStatus || 'pending') %></span></dd></div>
+          <div><dt>TIN document</dt><dd><span class="status-pill status-<%= user?.verificationDocuments?.tinDocument?.status || 'pending' %>"><%= formatStatus(user?.verificationDocuments?.tinDocument?.status || 'pending') %></span></dd></div>
+          <div><dt>Business registration</dt><dd><span class="status-pill status-<%= user?.verificationDocuments?.businessRegistrationCertificate?.status || 'pending' %>"><%= formatStatus(user?.verificationDocuments?.businessRegistrationCertificate?.status || 'pending') %></span></dd></div>
+        </dl>
+        <% if (user?.documentReviewNote) { %><p><strong>Admin note:</strong> <%= user.documentReviewNote %></p><% } %>
+        <% if (user?.verificationDocuments?.tinDocument?.rejectionReason) { %><p><strong>TIN rejection reason:</strong> <%= user.verificationDocuments.tinDocument.rejectionReason %></p><% } %>
+        <% if (user?.verificationDocuments?.businessRegistrationCertificate?.rejectionReason) { %><p><strong>Business registration rejection reason:</strong> <%= user.verificationDocuments.businessRegistrationCertificate.rejectionReason %></p><% } %>
+      </div>
+      <div class="form-actions split-actions">
+        <a class="btn btn-primary" href="/dashboard/buyer/profile">Update profile</a>
+        <a class="btn btn-secondary" href="/dashboard/notifications">Notifications</a>
+      </div>
+    </div>
+  </div>
+</section>

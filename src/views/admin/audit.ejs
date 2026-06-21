@@ -1,0 +1,64 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Audit trail.</h1>
+        <p>Review important user, document, product, order, and receipt actions.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin">Back to admin</a>
+      </div>
+    </div>
+
+    <form class="filter-card" action="/dashboard/admin/audit" method="GET">
+      <label for="q">Search<input id="q" name="q" type="search" maxlength="100" value="<%= filters.q %>" placeholder="Actor, target, action, message..."></label>
+      <label for="actorRole">Actor role
+        <select id="actorRole" name="actorRole">
+          <option value="">All roles</option>
+          <% ['buyer', 'farmer', 'admin', 'system'].forEach((role) => { %>
+            <option value="<%= role %>" <%= filters.actorRole === role ? 'selected' : '' %>><%= formatStatus(role) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="action">Action
+        <select id="action" name="action">
+          <option value="">All actions</option>
+          <% actions.forEach((action) => { %>
+            <option value="<%= action %>" <%= filters.action === action ? 'selected' : '' %>><%= action %></option>
+          <% }) %>
+        </select>
+      </label>
+      <div class="filter-actions"><button class="btn btn-primary" type="submit">Filter</button><a class="btn btn-secondary" href="/dashboard/admin/audit">Reset</a></div>
+    </form>
+
+    <% if (!logs.length) { %>
+      <div class="empty-state"><span class="empty-icon">🧾</span><h2>No audit records found.</h2></div>
+    <% } else { %>
+      <div class="table-card responsive-table">
+        <table>
+          <thead><tr><th>Date</th><th>Severity</th><th>Action</th><th>Actor</th><th>Target</th><th>Request</th><th>Details</th></tr></thead>
+          <tbody>
+            <% logs.forEach((log) => { %>
+              <tr>
+                <td><%= formatDateTime(log.createdAt) %></td>
+                <td><span class="status-pill status-<%= log.severity || 'info' %>"><%= formatStatus(log.severity || 'info') %></span></td>
+                <td><code><%= log.action %></code></td>
+                <td>
+                  <strong><%= log.actorName || 'System' %></strong><br>
+                  <small><%= log.actorEmail || formatStatus(log.actorRole || 'system') %></small>
+                </td>
+                <td>
+                  <%= log.targetLabel || log.targetType || 'System' %><br>
+                  <small><%= log.targetType || '' %></small>
+                </td>
+                <td><small><%= log.method || '' %> <%= log.path || '' %><br><%= log.ipAddress || '' %></small></td>
+                <td><%= log.message || 'No details recorded.' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>

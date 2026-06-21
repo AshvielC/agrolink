@@ -1,0 +1,95 @@
+<section class="auth-section">
+  <div class="container narrow-container">
+    <div class="auth-card">
+      <p class="eyebrow">Order request</p>
+      <h1>Request this produce.</h1>
+      <p class="muted-text">Send a clear request to the farmer. The farmer can then accept, reject, or complete the request from their dashboard.</p>
+
+      <article class="order-product-summary">
+        <% if (product.image && product.image.path) { %>
+          <img src="<%= product.image.path %>" alt="Photo of <%= product.name %>">
+        <% } else { %>
+          <div class="order-image-placeholder" aria-hidden="true">🌿</div>
+        <% } %>
+        <div>
+          <span class="product-category"><%= product.category %></span>
+          <h2><%= product.name %></h2>
+          <dl class="product-meta compact-meta">
+            <div>
+              <dt>Available</dt>
+              <dd><%= product.quantity %> <%= product.unit %></dd>
+            </div>
+            <div>
+              <dt>Price</dt>
+              <dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %><br><small><%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> · <%= product.vatRate %>% VAT<% } %></small></dd>
+            </div>
+            <div>
+              <dt>Location</dt>
+              <dd><%= product.location %></dd>
+            </div>
+            <div>
+              <dt>Farmer</dt>
+              <dd>
+                <%= product.farmer?.farmerProfile?.farmName || product.farmer?.name || 'Farmer' %>
+                <% if (product.farmer?._id) { %>
+                  <br><a class="subtle-link" href="/dashboard/buyer/farmers/<%= product.farmer._id %>/profile">View profile</a>
+                <% } %>
+              </dd>
+            </div>
+          </dl>
+        </div>
+      </article>
+
+      <%- include('_farmer-payment-details', { source: product }) %>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form class="stacked-form" action="/dashboard/buyer/products/<%= product._id %>/request" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="order-total-box" data-order-calculator data-unit-price="<%= product.price %>" data-vat-mode="<%= product.vatMode || 'none' %>" data-vat-rate="<%= product.vatRate || 0 %>" data-currency="<%= product.currency || 'FJD' %>">
+          <strong>Estimated order total</strong>
+          <p class="muted-text">Enter a quantity to calculate the total. <%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> at <%= product.vatRate %>% VAT<% } %>.</p>
+          <dl class="product-meta compact-meta">
+            <div><dt>Subtotal excl. VAT</dt><dd data-order-subtotal>FJD $0.00</dd></div>
+            <div><dt>VAT</dt><dd data-order-vat>FJD $0.00</dd></div>
+            <div><dt>Total price</dt><dd data-order-total>FJD $0.00</dd></div>
+          </dl>
+        </div>
+
+        <div class="form-row">
+          <label for="requestedQuantity">
+            Quantity wanted, <%= product.unit %>
+            <input id="requestedQuantity" name="requestedQuantity" type="number" min="0.01" max="<%= product.quantity %>" step="0.01" value="<%= formData.requestedQuantity %>" placeholder="Example: 25" required>
+            <span class="field-hint">Available quantity: <%= product.quantity %> <%= product.unit %>.</span>
+          </label>
+
+          <label for="buyerContactEmail">
+            Contact email
+            <input id="buyerContactEmail" name="buyerContactEmail" type="email" maxlength="254" value="<%= formData.buyerContactEmail %>" required>
+          </label>
+        </div>
+
+        <label for="buyerContactPhone">
+          Contact phone, optional
+          <input id="buyerContactPhone" name="buyerContactPhone" type="tel" maxlength="40" value="<%= formData.buyerContactPhone %>" placeholder="Example: +679 700 0000">
+        </label>
+
+        <label for="deliveryNote">
+          Pickup or delivery note, optional
+          <textarea id="deliveryNote" name="deliveryNote" rows="3" maxlength="300" placeholder="Example: I can collect from Suva market on Friday morning."><%= formData.deliveryNote %></textarea>
+        </label>
+
+        <label for="message">
+          Message to farmer, optional
+          <textarea id="message" name="message" rows="5" maxlength="800" placeholder="Add packaging, quality, timing, or payment questions."><%= formData.message %></textarea>
+        </label>
+
+        <div class="form-actions split-actions">
+          <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">Cancel</a>
+          <button class="btn btn-primary" type="submit">Send request</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

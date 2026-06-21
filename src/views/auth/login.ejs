@@ -1,0 +1,33 @@
+<section class="auth-section">
+  <div class="container narrow-container">
+    <div class="auth-card">
+      <p class="eyebrow">Welcome back</p>
+      <h1>Log in to AgroLink</h1>
+      <p class="muted-text">Access your buyer or farmer dashboard.</p>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form class="stacked-form" action="/login" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="form-field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" value="<%= formData.email || '' %>" autocomplete="email" maxlength="254" required>
+        </div>
+
+        <div class="form-field">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="password-toggle" type="button" data-password-toggle aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" type="submit">Log in</button>
+      </form>
+
+      <p class="auth-switch"><a href="/forgot-password">Forgot password?</a></p>
+      <p class="auth-switch">New to AgroLink? <a href="/signup">Create an account</a>.</p>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,69 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="dashboard-hero compact-hero">
+      <div>
+        <p class="eyebrow">Farmer profile</p>
+        <h1>Edit your farm details.</h1>
+        <p>These details help buyers understand your farm, location, and pickup or delivery options.</p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/farmer/profile">Back to profile</a>
+    </div>
+
+    <%- include('../partials/form-errors', { errors }) %>
+
+    <form class="form-card" action="/dashboard/farmer/profile" method="POST" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="profile-upload-row">
+        <%- include('../partials/profile-image', { user: farmer, label: formData.farmName || formData.name || 'Farmer', fallbackIcon: '🌾', className: '' }) %>
+        <div>
+          <label for="profileImage">Profile photo or farm logo
+            <input id="profileImage" name="profileImage" type="file" accept="image/jpeg,image/png,image/webp">
+          </label>
+          <span class="field-hint">JPG, PNG, or WebP. Maximum 5MB.</span>
+          <% if (farmer?.profileImage?.path) { %>
+            <label class="checkbox-label"><input type="checkbox" name="removeProfileImage" value="1"> Remove current image</label>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="name">Your name<input id="name" name="name" type="text" maxlength="80" value="<%= formData.name %>" required></label>
+        <label for="farmName">Farm/business name<input id="farmName" name="farmName" type="text" maxlength="120" value="<%= formData.farmName %>"></label>
+      </div>
+
+      <div class="form-row">
+        <label for="ownerName">Owner/contact name<input id="ownerName" name="ownerName" type="text" maxlength="120" value="<%= formData.ownerName %>"></label>
+        <label for="phone">Phone number<input id="phone" name="phone" type="tel" maxlength="40" value="<%= formData.phone %>"></label>
+      </div>
+
+      <label for="farmLocation">Farm location<input id="farmLocation" name="farmLocation" type="text" maxlength="120" value="<%= formData.farmLocation %>" placeholder="Example: Nausori, Fiji"></label>
+      <label for="farmAddress">Farm address<textarea id="farmAddress" name="farmAddress" rows="3" maxlength="250"><%= formData.farmAddress %></textarea></label>
+      <label for="mainProducts">Main products<input id="mainProducts" name="mainProducts" type="text" maxlength="200" value="<%= formData.mainProducts %>" placeholder="Example: dalo, cassava, tomatoes"></label>
+      <label for="farmDescription">Farm description<textarea id="farmDescription" name="farmDescription" rows="5" maxlength="600" placeholder="Tell buyers about your farm..."><%= formData.farmDescription %></textarea></label>
+      <label for="pickupOptions">Pickup options<textarea id="pickupOptions" name="pickupOptions" rows="3" maxlength="300" placeholder="Example: Pickup from farm gate or town market..."><%= formData.pickupOptions %></textarea></label>
+      <label for="deliveryOptions">Delivery options<textarea id="deliveryOptions" name="deliveryOptions" rows="3" maxlength="300" placeholder="Example: Delivery available around Suva on Saturdays..."><%= formData.deliveryOptions %></textarea></label>
+
+      <div class="form-section-divider">
+        <p class="eyebrow">Payment details</p>
+        <h2>How buyers can pay you</h2>
+        <p class="muted-text">These details are shown to buyers in order requests and saved on farmer-issued receipts after successful payment.</p>
+      </div>
+
+      <div class="form-row">
+        <label for="bankName">Bank name<input id="bankName" name="bankName" type="text" maxlength="120" value="<%= formData.bankName %>" placeholder="Example: BSP, ANZ, Westpac"></label>
+        <label for="bankAccountNumber">Bank account number<input id="bankAccountNumber" name="bankAccountNumber" type="text" maxlength="80" value="<%= formData.bankAccountNumber %>"></label>
+      </div>
+
+      <div class="form-row">
+        <label for="mpaisaNumber">M-PAiSA number<input id="mpaisaNumber" name="mpaisaNumber" type="tel" maxlength="40" value="<%= formData.mpaisaNumber %>"></label>
+        <label for="mycashNumber">MyCash number<input id="mycashNumber" name="mycashNumber" type="tel" maxlength="40" value="<%= formData.mycashNumber %>"></label>
+      </div>
+
+      <div class="form-actions split-actions">
+        <a class="btn btn-secondary" href="/dashboard/farmer/profile">Cancel</a>
+        <button class="btn btn-primary" type="submit">Save profile</button>
+      </div>
+    </form>
+  </div>
+</section>

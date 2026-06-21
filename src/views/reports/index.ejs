@@ -1,0 +1,45 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">My reports</p>
+        <h1>Reports and disputes</h1>
+        <p>Track reports you have submitted to the platform admin team.</p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard">Dashboard</a>
+    </div>
+
+    <% if (!reports.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🛡️</span>
+        <h2>No reports submitted.</h2>
+        <p class="muted-text">Report buttons appear on products, orders, messages, and profiles when needed.</p>
+      </div>
+    <% } else { %>
+      <div class="order-list">
+        <% reports.forEach((report) => { %>
+          <article class="order-card">
+            <div class="product-card-top order-card-topline">
+              <span class="product-category"><%= reasonLabel(report.reason) %></span>
+              <span class="status-pill status-<%= report.status %>"><%= formatStatus(report.status) %></span>
+            </div>
+            <h2><%= report.targetSnapshot?.title || 'Marketplace report' %></h2>
+            <p class="muted-text"><%= report.targetSnapshot?.subtitle || formatStatus(report.targetType) %></p>
+            <dl class="product-meta order-meta">
+              <div><dt>Target</dt><dd><%= formatStatus(report.targetType) %></dd></div>
+              <div><dt>Reported user</dt><dd><%= report.reportedUserSnapshot?.farmName || report.reportedUserSnapshot?.organization || report.reportedUserSnapshot?.name || 'Not recorded' %></dd></div>
+              <div><dt>Submitted</dt><dd><%= formatDateTime(report.createdAt) %></dd></div>
+              <div><dt>Admin action</dt><dd><%= actionLabel(report.adminAction || 'none') %></dd></div>
+            </dl>
+            <% if (report.resolutionNote) { %>
+              <div class="note-box"><strong>Resolution note</strong><p><%= report.resolutionNote %></p></div>
+            <% } %>
+            <div class="product-actions order-actions">
+              <a class="btn btn-secondary" href="/dashboard/reports/<%= report._id %>">Open report</a>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

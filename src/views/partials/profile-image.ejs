@@ -1,0 +1,8 @@
+<% const profileLabel = typeof label !== 'undefined' ? label : 'profile'; %>
+<% const extraClass = typeof className !== 'undefined' ? className : ''; %>
+<% const icon = typeof fallbackIcon !== 'undefined' ? fallbackIcon : '👤'; %>
+<% if (user && user.profileImage && user.profileImage.path) { %>
+  <img class="profile-photo <%= extraClass %>" src="<%= user.profileImage.path %>" alt="Photo for <%= profileLabel %>">
+<% } else { %>
+  <div class="profile-photo profile-photo-placeholder <%= extraClass %>" aria-hidden="true"><%= icon %></div>
+<% } %>

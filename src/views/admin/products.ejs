@@ -1,0 +1,64 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Manage product listings.</h1>
+        <p>Review listings and remove inappropriate or outdated products without damaging order history.</p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/admin">Back to admin</a>
+    </div>
+
+    <form class="filter-card" action="/dashboard/admin/products" method="GET">
+      <label for="q">Search<input id="q" name="q" type="search" maxlength="80" value="<%= filters.q %>" placeholder="Product, category, location..."></label>
+      <label for="status">Status
+        <select id="status" name="status">
+          <option value="">All statuses</option>
+          <% statuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <div class="filter-actions"><button class="btn btn-primary" type="submit">Filter</button><a class="btn btn-secondary" href="/dashboard/admin/products">Reset</a></div>
+    </form>
+
+    <% if (!products.length) { %>
+      <div class="empty-state"><span class="empty-icon">🌾</span><h2>No products found.</h2></div>
+    <% } else { %>
+      <div class="product-grid compact-product-grid">
+        <% products.forEach((product) => { %>
+          <article class="product-card">
+            <%- include('../partials/product-image', { product }) %>
+            <div class="product-card-top">
+              <span class="product-category"><%= product.category %></span>
+              <span class="status-pill status-<%= product.status %>"><%= formatStatus(product.status) %></span>
+            </div>
+            <h2><%= product.name %></h2>
+            <p class="muted-text"><%= product.description || 'No description.' %></p>
+            <dl class="product-meta">
+              <div><dt>Farmer</dt><dd><%= product.farmer?.farmerProfile?.farmName || product.farmer?.name || 'Farmer' %></dd></div>
+              <div><dt>Farmer status</dt><dd><%= formatStatus(product.farmer?.accountStatus || 'active') %></dd></div>
+              <div><dt>Quantity</dt><dd><%= product.quantity %> <%= product.unit %></dd></div>
+              <div><dt>Price</dt><dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %></dd></div>
+            </dl>
+
+            <div class="product-analytics-strip" aria-label="Product activity">
+              <span><strong><%= product.analytics?.viewCount || 0 %></strong> views</span>
+              <span><strong><%= product.analytics?.requestCount || 0 %></strong> requests</span>
+              <span><strong><%= product.analytics?.contactCount || 0 %></strong> messages</span>
+            </div>
+
+            <% if (product.status !== 'removed') { %>
+              <form action="/dashboard/admin/products/<%= product._id %>/remove" method="POST" data-confirm="Remove this listing from the active platform? Existing order history will remain available.">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-danger" type="submit">Remove listing</button>
+              </form>
+            <% } else { %>
+              <p class="muted-text">Removed on <%= formatDate(product.removedAt) %>.</p>
+            <% } %>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

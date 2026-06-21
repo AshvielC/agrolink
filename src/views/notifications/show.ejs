@@ -1,0 +1,56 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="dashboard-hero compact-hero">
+      <div>
+        <p class="eyebrow">Notification message</p>
+        <h1><%= notification.title %></h1>
+        <p>Opened <%= formatDateTime(notification.readAt || notification.createdAt) %></p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/notifications">Back to notifications</a>
+    </div>
+
+    <article class="notification-detail-card">
+      <div class="notification-detail-header">
+        <span class="status-pill <%= notification.readAt ? 'status-available' : 'status-pending' %>">
+          <%= notification.readAt ? 'Read' : 'Unread' %>
+        </span>
+        <span class="muted-text"><%= formatDateTime(notification.createdAt) %></span>
+      </div>
+
+      <h2><%= notification.title %></h2>
+      <p class="notification-detail-message"><%= notification.message %></p>
+
+      <dl class="product-meta notification-meta">
+        <div>
+          <dt>From</dt>
+          <dd>
+            <% if (notification.actor) { %>
+              <%= notification.actor.name %>
+            <% } else { %>
+              AgroLink
+            <% } %>
+          </dd>
+        </div>
+        <div>
+          <dt>Type</dt>
+          <dd><%= notification.actorRole || 'system' %></dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd><%= formatDateTime(notification.createdAt) %></dd>
+        </div>
+        <div>
+          <dt>Read</dt>
+          <dd><%= notification.readAt ? formatDateTime(notification.readAt) : 'Not yet' %></dd>
+        </div>
+      </dl>
+
+      <div class="notification-detail-actions">
+        <% if (notification.link) { %>
+          <a class="btn btn-primary" href="<%= notification.link %>">Open related page</a>
+        <% } %>
+        <a class="btn btn-secondary" href="/dashboard/notifications">All notifications</a>
+      </div>
+    </article>
+  </div>
+</section>

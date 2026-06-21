@@ -1,0 +1,53 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Marketplace safety</p>
+        <h1>Submit a report</h1>
+        <p>Use this form for incorrect listings, order/payment issues, abusive messages, or suspicious accounts.</p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/reports">My reports</a>
+    </div>
+
+    <article class="form-card">
+      <div class="note-box">
+        <strong>Reporting</strong>
+        <p><%= targetContext.targetSnapshot?.title || 'Marketplace record' %></p>
+        <% if (targetContext.targetSnapshot?.subtitle) { %>
+          <p class="muted-text"><%= targetContext.targetSnapshot.subtitle %></p>
+        <% } %>
+        <% if (targetContext.reportedUserSnapshot?.name || targetContext.reportedUserSnapshot?.farmName || targetContext.reportedUserSnapshot?.organization) { %>
+          <p class="muted-text">Related user: <%= targetContext.reportedUserSnapshot.farmName || targetContext.reportedUserSnapshot.organization || targetContext.reportedUserSnapshot.name %></p>
+        <% } %>
+      </div>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form action="/dashboard/reports" method="POST" enctype="multipart/form-data">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="targetType" value="<%= targetType %>">
+        <input type="hidden" name="targetId" value="<%= targetId %>">
+
+        <label for="reason">Reason</label>
+        <select id="reason" name="reason" required>
+          <option value="">Select reason</option>
+          <% reasons.forEach((reason) => { %>
+            <option value="<%= reason %>" <%= formData.reason === reason ? 'selected' : '' %>><%= reasonLabel(reason) %></option>
+          <% }) %>
+        </select>
+
+        <label for="description">Describe the issue</label>
+        <textarea id="description" name="description" rows="8" maxlength="2000" required placeholder="Give the admin enough detail to review the issue."><%= formData.description || '' %></textarea>
+
+        <label for="evidence">Evidence files, optional</label>
+        <input id="evidence" name="evidence" type="file" multiple accept=".pdf,image/jpeg,image/png,image/webp">
+        <p class="field-hint">Upload up to 3 files. PDF, JPG, PNG, or WebP. Maximum 10MB each.</p>
+
+        <div class="button-row">
+          <button class="btn btn-primary" type="submit">Submit report</button>
+          <a class="btn btn-secondary" href="/dashboard/reports">Cancel</a>
+        </div>
+      </form>
+    </article>
+  </div>
+</section>

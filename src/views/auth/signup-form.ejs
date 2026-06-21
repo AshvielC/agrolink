@@ -1,0 +1,101 @@
+<section class="auth-section">
+  <div class="container narrow-container">
+    <div class="auth-card">
+      <p class="eyebrow"><%= role === 'farmer' ? 'Farmer account' : 'Buyer account' %></p>
+      <h1><%= role === 'farmer' ? 'Create your farmer profile' : 'Create your buyer profile' %></h1>
+      <p class="muted-text">Use a strong password and keep your account details accurate.</p>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form class="stacked-form" action="/signup/<%= role %>" method="POST" enctype="multipart/form-data" novalidate data-disable-submit-timeout-reset="true">
+		  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <div class="form-field">
+          <label for="name">Full name</label>
+          <input id="name" name="name" type="text" value="<%= formData.name || '' %>" autocomplete="name" maxlength="80" required>
+        </div>
+
+        <div class="form-field">
+          <label for="email">Email address</label>
+          <input id="email" name="email" type="email" value="<%= formData.email || '' %>" autocomplete="email" maxlength="254" required>
+        </div>
+
+        <div class="form-field">
+          <label for="phone">Phone number</label>
+          <input id="phone" name="phone" type="tel" value="<%= formData.phone || '' %>" autocomplete="tel" maxlength="7" pattern="\d{7}" inputmode="numeric" placeholder="Example: 7000000" required>
+        </div>
+
+        <% if (role === 'farmer') { %>
+          <div class="form-field">
+            <label for="farmName">Farm name</label>
+            <input id="farmName" name="farmName" type="text" value="<%= formData.farmName || '' %>" maxlength="120" required>
+          </div>
+          <div class="form-field">
+            <label for="farmLocation">Farm location</label>
+            <input id="farmLocation" name="farmLocation" type="text" value="<%= formData.farmLocation || '' %>" maxlength="120" required>
+          </div>
+          <div class="form-field">
+            <label for="farmAddress">Farm address</label>
+            <input id="farmAddress" name="farmAddress" type="text" value="<%= formData.farmAddress || '' %>" maxlength="250" required>
+          </div>
+          <div class="form-field">
+            <label for="mainProducts">Main products</label>
+            <input id="mainProducts" name="mainProducts" type="text" value="<%= formData.mainProducts || '' %>" maxlength="200" placeholder="Example: dalo, cassava, tomatoes" required>
+          </div>
+        <% } else { %>
+          <div class="form-field">
+            <label for="organization">Business or organization</label>
+            <input id="organization" name="organization" type="text" value="<%= formData.organization || '' %>" maxlength="120" required>
+          </div>
+          <div class="form-field">
+            <label for="buyingLocation">Buying location</label>
+            <input id="buyingLocation" name="buyingLocation" type="text" value="<%= formData.buyingLocation || '' %>" maxlength="120" required>
+          </div>
+          <div class="form-field">
+            <label for="deliveryAddress">Delivery address</label>
+            <input id="deliveryAddress" name="deliveryAddress" type="text" value="<%= formData.deliveryAddress || '' %>" maxlength="250" required>
+          </div>
+          <div class="form-field">
+            <label for="interestedProducts">Products you buy</label>
+            <input id="interestedProducts" name="interestedProducts" type="text" value="<%= formData.interestedProducts || '' %>" maxlength="200" placeholder="Example: vegetables, root crops, fruits" required>
+          </div>
+        <% } %>
+
+        <div class="form-field">
+          <label for="tinDocument">TIN document</label>
+          <input id="tinDocument" name="tinDocument" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+          <small>Upload one PDF, JPG, PNG, or WebP file. Maximum file size: 10MB.</small>
+        </div>
+
+        <div class="form-field">
+          <label for="businessRegistrationCertificate">Business registration certificate</label>
+          <input id="businessRegistrationCertificate" name="businessRegistrationCertificate" type="file" accept="application/pdf,image/jpeg,image/png,image/webp" required>
+          <small>Upload one PDF, JPG, PNG, or WebP file. Maximum file size: 10MB.</small>
+        </div>
+
+        <div class="form-field">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="new-password" minlength="8" required>
+            <button class="password-toggle" type="button" data-password-toggle aria-label="Show password">Show</button>
+          </div>
+          <small>Minimum 8 characters, with at least one letter and one number.</small>
+        </div>
+
+        <div class="form-field">
+          <label for="confirmPassword">Confirm password</label>
+          <input id="confirmPassword" name="confirmPassword" type="password" autocomplete="new-password" minlength="8" required>
+        </div>
+
+			<button class="btn btn-primary btn-full" type="submit" data-processing-text="Creating account... Please wait">Create account</button>
+
+			<small class="muted-text">
+				Account creation may take a few seconds while your documents are checked.
+				Please press Create account only once.
+			</small>
+      </form>
+
+      <p class="auth-switch">Already have an account? <a href="/login">Log in</a>.</p>
+    </div>
+  </div>
+</section>

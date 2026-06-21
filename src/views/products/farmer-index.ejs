@@ -1,0 +1,96 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">My produce</p>
+        <h1>Manage your produce listings.</h1>
+        <p>Create listings buyers can discover, then mark products as available or not available as stock changes.</p>
+        <p class="muted-text product-limit-note">Active product slots used: <strong><%= productCount %>/<%= maxProductsPerFarmer %></strong></p>
+      </div>
+      <% if (productCount >= maxProductsPerFarmer) { %>
+        <span class="btn btn-disabled" aria-disabled="true">Product limit reached</span>
+      <% } else { %>
+        <a class="btn btn-primary" href="/dashboard/farmer/products/new">Add produce</a>
+      <% } %>
+    </div>
+
+    <% if (!products.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🌾</span>
+        <h2>No active produce listings.</h2>
+        <p class="muted-text">Create a listing so buyers can start discovering your farm products.</p>
+        <% if (productCount < maxProductsPerFarmer) { %>
+          <a class="btn btn-primary" href="/dashboard/farmer/products/new">Create first listing</a>
+        <% } %>
+      </div>
+    <% } else { %>
+      <div class="product-grid">
+        <% products.forEach((product) => { %>
+          <article class="product-card">
+            <%- include('../partials/product-image', { product }) %>
+            <div class="product-card-top">
+              <span class="product-category"><%= product.category %></span>
+              <span class="status-pill status-<%= product.status %>"><%= product.status === 'unavailable' ? 'Not available' : formatStatus(product.status) %></span>
+            </div>
+            <h2><%= product.name %></h2>
+            <p class="muted-text"><%= product.description || 'No description added yet.' %></p>
+
+            <dl class="product-meta">
+              <div>
+                <dt>Quantity</dt>
+                <dd><%= product.quantity %> <%= product.unit %></dd>
+              </div>
+              <div>
+                <dt>Price</dt>
+                <dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %><br><small><%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> · <%= product.vatRate %>% VAT<% } %></small></dd>
+              </div>
+              <div>
+                <dt>Location</dt>
+                <dd><%= product.location %></dd>
+              </div>
+              <div>
+                <dt>Ready date</dt>
+                <dd><%= formatDate(product.harvestDate) %></dd>
+              </div>
+            </dl>
+
+
+            <div class="product-analytics-strip" aria-label="Product activity">
+              <span><strong><%= product.analytics?.viewCount || 0 %></strong> views</span>
+              <span><strong><%= product.analytics?.requestCount || 0 %></strong> requests</span>
+              <span><strong><%= product.analytics?.contactCount || 0 %></strong> messages</span>
+            </div>
+
+            <% if (product.status === 'unavailable') { %>
+              <p class="muted-text availability-note">This product is hidden from the buyer marketplace until you mark it available again.</p>
+            <% } %>
+
+            <div class="product-actions">
+              <a class="btn btn-secondary" href="/dashboard/farmer/products/<%= product._id %>/edit">Edit</a>
+              <a class="btn btn-secondary" href="/dashboard/farmer/products/<%= product._id %>/stock-card">Stock card</a>
+
+              <% if (product.status === 'available') { %>
+                <form action="/dashboard/farmer/products/<%= product._id %>/status" method="POST" data-confirm="Mark this product as not available? Buyers will no longer see it in the active marketplace.">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="status" value="unavailable">
+                  <button class="btn btn-secondary" type="submit">Mark not available</button>
+                </form>
+              <% } else { %>
+                <form action="/dashboard/farmer/products/<%= product._id %>/status" method="POST">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <input type="hidden" name="status" value="available">
+                  <button class="btn btn-primary" type="submit">Mark available</button>
+                </form>
+              <% } %>
+
+              <form action="/dashboard/farmer/products/<%= product._id %>/remove" method="POST" data-confirm="Remove this listing? Existing order history will be preserved, but buyers will no longer see this product.">
+                <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                <button class="btn btn-danger" type="submit">Remove</button>
+              </form>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

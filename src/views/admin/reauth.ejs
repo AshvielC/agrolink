@@ -1,0 +1,30 @@
+<section class="auth-section">
+  <div class="container narrow-container">
+    <div class="auth-card">
+      <p class="eyebrow">Admin security</p>
+      <h1>Confirm admin access</h1>
+      <p class="muted-text">
+        Re-enter your admin password to continue to this sensitive area. This helps protect documents, exports, audit logs, and security records if an admin session is left open.
+      </p>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form class="stacked-form" action="/dashboard/admin/reauth" method="POST" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="returnTo" value="<%= returnTo %>">
+
+        <div class="form-field">
+          <label for="password">Admin password</label>
+          <div class="password-wrap">
+            <input id="password" name="password" type="password" autocomplete="current-password" required>
+            <button class="password-toggle" type="button" data-password-toggle aria-label="Show password">Show</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-full" type="submit">Continue securely</button>
+      </form>
+
+      <p class="auth-switch"><a href="/dashboard/admin">Back to admin dashboard</a></p>
+    </div>
+  </div>
+</section>

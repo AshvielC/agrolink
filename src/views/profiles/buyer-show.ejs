@@ -1,0 +1,51 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="profile-hero-card">
+      <%- include('../partials/profile-image', { user: buyer, label: buyer?.buyerProfile?.organization || buyer?.name || 'Buyer', fallbackIcon: '🛒', className: 'profile-photo-large' }) %>
+      <div class="profile-hero-content">
+        <p class="eyebrow"><%= isOwner ? 'My buyer profile' : 'Buyer profile' %></p>
+        <h1><%= buyer?.buyerProfile?.organization || buyer?.name || 'Buyer' %></h1>
+        <p class="muted-text"><%= buyer?.buyerProfile?.buyingNotes || 'This buyer has not added buying notes yet.' %></p>
+        <div class="profile-badge-row">
+          <span class="status-pill status-<%= buyer?.accountStatus || 'active' %>"><%= formatStatus(buyer?.accountStatus || 'active') %></span>
+          <% if (buyer?.buyerProfile?.buyingLocation) { %>
+            <span class="soft-pill">📍 <%= buyer.buyerProfile.buyingLocation %></span>
+          <% } %>
+          <% if (buyer?.buyerProfile?.interestedProducts) { %>
+            <span class="soft-pill">🧺 <%= buyer.buyerProfile.interestedProducts %></span>
+          <% } %>
+        </div>
+      </div>
+      <div class="profile-hero-actions">
+        <% if (isOwner) { %>
+          <a class="btn btn-primary" href="/dashboard/buyer/profile/edit">Edit profile</a>
+          <a class="btn btn-secondary" href="/dashboard/buyer">Back to dashboard</a>
+        <% } else { %>
+          <a class="btn btn-secondary" href="/dashboard/farmer/orders">Back to requests</a>
+          <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=user&targetId=<%= buyer._id %>">Report buyer</a>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <article class="profile-panel">
+        <h2>Buyer details</h2>
+        <dl class="profile-details">
+          <div><dt>Contact name</dt><dd><%= buyer?.buyerProfile?.contactName || buyer?.name || 'Not added' %></dd></div>
+          <div><dt>Email</dt><dd><%= buyer?.email || 'Not added' %></dd></div>
+          <div><dt>Phone</dt><dd><%= buyer?.buyerProfile?.phone || 'Not added' %></dd></div>
+          <div><dt>Preferred contact</dt><dd><%= formatStatus(buyer?.buyerProfile?.preferredContactMethod || 'email') %></dd></div>
+        </dl>
+      </article>
+
+      <article class="profile-panel">
+        <h2>Buying details</h2>
+        <dl class="profile-details">
+          <div><dt>Buying location</dt><dd><%= buyer?.buyerProfile?.buyingLocation || 'Not added' %></dd></div>
+          <div><dt>Delivery address</dt><dd><%= buyer?.buyerProfile?.deliveryAddress || 'Not added' %></dd></div>
+          <div><dt>Interested products</dt><dd><%= buyer?.buyerProfile?.interestedProducts || 'Not added' %></dd></div>
+        </dl>
+      </article>
+    </div>
+  </div>
+</section>

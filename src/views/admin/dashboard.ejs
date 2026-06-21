@@ -1,0 +1,139 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Admin dashboard</p>
+        <h1>Platform control center.</h1>
+        <p>Review users, farmer approvals, listings, and order activity.</p>
+      </div>
+      <div class="hero-action-stack">
+        <a class="btn btn-primary" href="/dashboard/admin/users?status=pending_approval">Approve users</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/products">Manage products</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/orders">View orders</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/audit">Audit trail</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/security">Security dashboard</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/reports">Reports</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/exports">Export center</a>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <% metrics.forEach((metric) => { %>
+        <article class="metric-card">
+          <span><%= metric.label %></span>
+          <strong><%= metric.value %></strong>
+        </article>
+      <% }) %>
+    </div>
+	  <div class="section-heading row-heading">
+		  <div>
+			  <p class="eyebrow">Security watch</p>
+			  <h2>Temporarily locked accounts</h2>
+		  </div>
+		  <a class="btn btn-secondary" href="/dashboard/admin/security">Open security dashboard</a>
+	  </div>
+
+	  <% if (!recentLockedUsers || !recentLockedUsers.length) { %>
+	  <div class="empty-state compact-empty">
+		  <span class="empty-icon">🔒</span>
+		  <h2>No locked accounts.</h2>
+		  <p class="muted-text">Accounts locked by repeated failed login attempts will appear here.</p>
+	  </div>
+	  <% } else { %>
+	  <div class="mini-list">
+		  <% recentLockedUsers.forEach((user) => { %>
+		  <article class="mini-row">
+			  <div>
+				  <span class="status-pill status-warning">Locked</span>
+				  <h3>
+					  <%= user.name %>
+				  </h3>
+				  <p class="muted-text">
+					  <%= user.email %>
+					  · <%= formatStatus(user.role) %>
+					  · failed attempts: <%= user.loginSecurity?.failedLoginAttempts || 0 %>
+					  · locked until <%= formatDateTime(user.loginSecurity?.lockedUntil) %>
+				  </p>
+			  </div>
+			  <a class="btn btn-secondary" href="/dashboard/admin/security">Review</a>
+		  </article>
+		  <% }) %>
+	  </div>
+	  <% } %>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Recent users</p>
+        <h2>Latest signups</h2>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/admin/users">Manage users</a>
+    </div>
+
+    <div class="mini-list">
+      <% recentUsers.forEach((user) => { %>
+        <article class="mini-row">
+          <div>
+            <span class="status-pill status-<%= user.accountStatus || 'active' %>"><%= formatStatus(user.accountStatus || 'active') %></span>
+            <h3><%= user.name %></h3>
+            <p class="muted-text"><%= user.email %> · <%= formatStatus(user.role) %> · joined <%= formatDate(user.createdAt) %></p>
+          </div>
+        </article>
+      <% }) %>
+    </div>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Recent orders</p>
+        <h2>Latest marketplace activity</h2>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/admin/orders">View all orders</a>
+    </div>
+
+    <% if (!recentOrders.length) { %>
+      <div class="empty-state compact-empty">
+        <span class="empty-icon">📦</span>
+        <h2>No orders yet.</h2>
+        <p class="muted-text">Buyer requests will appear here after marketplace activity starts.</p>
+      </div>
+    <% } else { %>
+      <div class="mini-list">
+        <% recentOrders.forEach((order) => { %>
+          <article class="mini-row">
+            <div>
+              <span class="status-pill status-<%= order.status %>"><%= formatStatus(order.status) %></span>
+              <h3><%= order.productSnapshot?.name || 'Produce request' %></h3>
+              <p class="muted-text"><%= order.buyerSnapshot?.name || 'Buyer' %> requested <%= order.requestedQuantity %> <%= order.unit %> from <%= order.farmerSnapshot?.farmName || order.farmerSnapshot?.name || 'Farmer' %>.</p>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Audit trail</p>
+        <h2>Recent system activity</h2>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/admin/audit">View full audit trail</a>
+    </div>
+
+    <% if (!recentAuditLogs.length) { %>
+      <div class="empty-state compact-empty">
+        <span class="empty-icon">🧾</span>
+        <h2>No audit activity yet.</h2>
+      </div>
+    <% } else { %>
+      <div class="mini-list">
+        <% recentAuditLogs.forEach((log) => { %>
+          <article class="mini-row">
+            <div>
+              <span class="status-pill"><%= log.action %></span>
+              <h3><%= log.targetLabel || log.message || 'System activity' %></h3>
+              <p class="muted-text"><%= log.actorName || 'System' %> · <%= formatDateTime(log.createdAt) %></p>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

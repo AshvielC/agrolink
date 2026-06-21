@@ -1,0 +1,5 @@
+<% if (product.image && product.image.path) { %>
+  <img class="product-photo" src="<%= product.image.path %>" alt="Photo of <%= product.name || 'product' %>">
+<% } else { %>
+  <div class="product-photo product-photo-placeholder" aria-hidden="true">🌿</div>
+<% } %>

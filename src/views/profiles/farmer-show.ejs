@@ -1,0 +1,94 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="profile-hero-card">
+      <%- include('../partials/profile-image', { user: farmer, label: farmer?.farmerProfile?.farmName || farmer?.name || 'Farmer', fallbackIcon: '🌾', className: 'profile-photo-large' }) %>
+      <div class="profile-hero-content">
+        <p class="eyebrow"><%= isOwner ? 'My farmer profile' : 'Farmer profile' %></p>
+        <h1><%= farmer?.farmerProfile?.farmName || farmer?.name || 'Farmer' %></h1>
+        <p class="muted-text"><%= farmer?.farmerProfile?.farmDescription || 'This farmer has not added a farm description yet.' %></p>
+        <div class="profile-badge-row">
+          <span class="status-pill status-<%= farmer?.accountStatus || 'active' %>"><%= formatStatus(farmer?.accountStatus || 'active') %></span>
+          <% if (farmer?.farmerProfile?.farmLocation) { %>
+            <span class="soft-pill">📍 <%= farmer.farmerProfile.farmLocation %></span>
+          <% } %>
+          <% if (farmer?.farmerProfile?.mainProducts) { %>
+            <span class="soft-pill">🌱 <%= farmer.farmerProfile.mainProducts %></span>
+          <% } %>
+        </div>
+      </div>
+      <div class="profile-hero-actions">
+        <% if (isOwner) { %>
+          <a class="btn btn-primary" href="/dashboard/farmer/profile/edit">Edit profile</a>
+          <a class="btn btn-secondary" href="/dashboard/farmer">Back to dashboard</a>
+        <% } else { %>
+          <a class="btn btn-primary" href="/dashboard/buyer/marketplace">Browse marketplace</a>
+          <a class="btn btn-secondary" href="/dashboard/buyer">Back to dashboard</a>
+          <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=user&targetId=<%= farmer._id %>">Report farmer</a>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="profile-grid">
+      <article class="profile-panel">
+        <h2>Farm details</h2>
+        <dl class="profile-details">
+          <div><dt>Owner/contact name</dt><dd><%= farmer?.farmerProfile?.ownerName || farmer?.name || 'Not added' %></dd></div>
+          <div><dt>Email</dt><dd><%= farmer?.email || 'Not added' %></dd></div>
+          <div><dt>Phone</dt><dd><%= farmer?.farmerProfile?.phone || 'Not added' %></dd></div>
+          <div><dt>Location</dt><dd><%= farmer?.farmerProfile?.farmLocation || 'Not added' %></dd></div>
+          <div><dt>Address</dt><dd><%= farmer?.farmerProfile?.farmAddress || 'Not added' %></dd></div>
+        </dl>
+      </article>
+
+      <article class="profile-panel">
+        <h2>Trade options</h2>
+        <dl class="profile-details">
+          <div><dt>Main products</dt><dd><%= farmer?.farmerProfile?.mainProducts || 'Not added' %></dd></div>
+          <div><dt>Pickup options</dt><dd><%= farmer?.farmerProfile?.pickupOptions || 'Not added' %></dd></div>
+          <div><dt>Delivery options</dt><dd><%= farmer?.farmerProfile?.deliveryOptions || 'Not added' %></dd></div>
+        </dl>
+      </article>
+
+      <article class="profile-panel">
+        <h2>Payment details</h2>
+        <p class="muted-text">Buyers use these details after an order request is accepted.</p>
+        <dl class="profile-details">
+          <div><dt>Bank name</dt><dd><%= farmer?.farmerProfile?.bankName || 'Not added' %></dd></div>
+          <div><dt>Bank account number</dt><dd><%= farmer?.farmerProfile?.bankAccountNumber || 'Not added' %></dd></div>
+          <div><dt>M-PAiSA number</dt><dd><%= farmer?.farmerProfile?.mpaisaNumber || 'Not added' %></dd></div>
+          <div><dt>MyCash number</dt><dd><%= farmer?.farmerProfile?.mycashNumber || 'Not added' %></dd></div>
+        </dl>
+      </article>
+    </div>
+
+    <% if (!isOwner) { %>
+      <div class="section-heading row-heading">
+        <div>
+          <p class="eyebrow">Available produce</p>
+          <h2>Current listings from this farmer</h2>
+        </div>
+        <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">View all produce</a>
+      </div>
+
+      <% if (!products.length) { %>
+        <div class="empty-state compact-empty"><span class="empty-icon">🌾</span><h2>No active listings right now.</h2></div>
+      <% } else { %>
+        <div class="product-grid compact-product-grid">
+          <% products.forEach((product) => { %>
+            <article class="product-card product-card-buyer">
+              <%- include('../partials/product-image', { product }) %>
+              <div class="product-card-top"><span class="product-category"><%= product.category %></span><span class="status-pill status-available">Available</span></div>
+              <h2><%= product.name %></h2>
+              <dl class="product-meta">
+                <div><dt>Quantity</dt><dd><%= product.quantity %> <%= product.unit %></dd></div>
+                <div><dt>Price</dt><dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %><br><small><%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> · <%= product.vatRate %>% VAT<% } %></small></dd></div>
+                <div><dt>Location</dt><dd><%= product.location %></dd></div>
+              </dl>
+              <div class="card-action-stack"><a class="btn btn-primary" href="/dashboard/buyer/products/<%= product._id %>/request">Request</a><a class="btn btn-secondary" href="/dashboard/buyer/products/<%= product._id %>/contact">Contact</a><a class="btn btn-secondary" href="/dashboard/reports/new?targetType=product&targetId=<%= product._id %>">Report</a></div>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    <% } %>
+  </div>
+</section>

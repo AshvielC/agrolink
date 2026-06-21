@@ -1,0 +1,68 @@
+<section class="dashboard-section <%= printMode ? 'print-page' : '' %>">
+  <div class="container">
+    <div class="dashboard-hero print-hide">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Message records</h1>
+        <p>Search and review buyer/farmer message history for support and dispute handling.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin">Admin dashboard</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/messages/print?<%= new URLSearchParams(filters).toString() %>">Print / Save PDF</a>
+      </div>
+    </div>
+
+    <form class="filter-card print-hide" action="/dashboard/admin/messages" method="GET">
+      <label for="q">Search<input id="q" name="q" type="search" maxlength="100" value="<%= filters.q %>" placeholder="Subject, user, email, farm, order, product..."></label>
+      <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Search</button>
+        <a class="btn btn-secondary" href="/dashboard/admin/messages">Reset</a>
+      </div>
+    </form>
+
+    <div class="card table-card">
+      <div class="table-card-header">
+        <h2><%= messages.length %> message<%= messages.length === 1 ? '' : 's' %></h2>
+        <% if (printMode) { %><p>Generated <%= formatDateTime(new Date()) %></p><% } %>
+      </div>
+      <% if (!messages.length) { %>
+        <p class="muted-text">No messages found.</p>
+      <% } else { %>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Type</th>
+                <th>Email</th>
+                <% if (!printMode) { %><th>Action</th><% } %>
+              </tr>
+            </thead>
+            <tbody>
+              <% messages.forEach((message) => { %>
+                <tr>
+                  <td><%= formatDateTime(message.createdAt) %></td>
+                  <td><strong><%= message.subject %></strong><br><small><%= message.body.length > 120 ? `${message.body.slice(0, 120)}...` : message.body %></small></td>
+                  <td><%= message.senderSnapshot?.farmName || message.senderSnapshot?.organization || message.senderSnapshot?.name || 'User' %><br><small><%= message.senderSnapshot?.email %></small></td>
+                  <td><%= message.recipientSnapshot?.farmName || message.recipientSnapshot?.organization || message.recipientSnapshot?.name || 'User' %><br><small><%= message.recipientSnapshot?.email %></small></td>
+                  <td><%= formatStatus(message.messageType) %></td>
+                  <td>In-app</td>
+                  <% if (!printMode) { %>
+                    <td><a class="btn btn-secondary btn-small" href="/dashboard/messages/<%= message._id %>">Open</a></td>
+                  <% } %>
+                </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
+    </div>
+  </div>
+</section>
+
+<% if (printMode) { %>
+  <div data-auto-print="true" hidden></div>
+<% } %>

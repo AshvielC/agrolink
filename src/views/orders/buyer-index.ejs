@@ -1,0 +1,215 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow"><%= isHistory ? 'Order history' : 'My active requests' %></p>
+        <h1><%= isHistory ? 'Review completed and closed requests.' : 'Track your active order requests.' %></h1>
+        <p><%= isHistory ? 'Closed requests are kept here for your records and printing.' : 'Review requests sent to farmers and follow their status from one place.' %></p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-primary" href="/dashboard/buyer/marketplace">Browse produce</a>
+        <% if (isHistory) { %>
+          <a class="btn btn-secondary" href="/dashboard/buyer/orders">Active requests</a>
+        <% } else { %>
+          <a class="btn btn-secondary" href="/dashboard/buyer/orders/history">View history</a>
+        <% } %>
+        <% if (orders.length) { %>
+          <button class="btn btn-secondary" type="button" data-print>Print this page</button>
+        <% } %>
+      </div>
+    </div>
+
+
+    <form class="filter-card order-filter-card" action="<%= isHistory ? '/dashboard/buyer/orders/history' : '/dashboard/buyer/orders' %>" method="GET">
+      <label for="q">Search
+        <input id="q" name="q" type="search" maxlength="100" value="<%= filters?.q || '' %>" placeholder="Product, farmer, farm name, location, phone...">
+      </label>
+      <label for="status">Status
+        <select id="status" name="status">
+          <option value="">All statuses</option>
+          <% (statuses || []).forEach((status) => { %>
+            <option value="<%= status %>" <%= filters?.status === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="paymentStatus">Payment
+        <select id="paymentStatus" name="paymentStatus">
+          <option value="">All payments</option>
+          <option value="unpaid" <%= filters?.paymentStatus === 'unpaid' ? 'selected' : '' %>>Unpaid</option>
+          <option value="paid" <%= filters?.paymentStatus === 'paid' ? 'selected' : '' %>>Paid</option>
+        </select>
+      </label>
+      <label for="fulfillmentStatus">Pickup/delivery
+        <select id="fulfillmentStatus" name="fulfillmentStatus">
+          <option value="">All schedules</option>
+          <% ['not_scheduled','requested','reschedule_requested','confirmed','completed','cancelled'].forEach((status) => { %>
+            <option value="<%= status %>" <%= filters?.fulfillmentStatus === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Search</button>
+        <a class="btn btn-secondary" href="<%= isHistory ? '/dashboard/buyer/orders/history' : '/dashboard/buyer/orders' %>">Reset</a>
+      </div>
+    </form>
+
+    <% if (!orders.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🧺</span>
+        <h2><%= isHistory ? 'No order history yet.' : 'No active order requests.' %></h2>
+        <p class="muted-text"><%= isHistory ? 'Completed, rejected, and cancelled requests will appear here.' : 'Browse the marketplace and send a request when you find produce you want to buy.' %></p>
+        <a class="btn btn-primary" href="/dashboard/buyer/marketplace">Find produce</a>
+      </div>
+    <% } else { %>
+      <div class="order-list">
+        <% orders.forEach((order) => { %>
+          <article class="order-card">
+            <div class="order-card-main">
+              <% if (order.productSnapshot?.imagePath) { %>
+                <img class="order-thumb" src="<%= order.productSnapshot.imagePath %>" alt="Photo of <%= order.productSnapshot.name || 'product' %>">
+              <% } else { %>
+                <div class="order-thumb order-thumb-placeholder" aria-hidden="true">🌿</div>
+              <% } %>
+              <div>
+                <div class="product-card-top order-card-topline">
+                  <span class="product-category"><%= order.productSnapshot?.category || 'Produce' %></span>
+                  <span class="status-pill status-<%= order.status %>"><%= formatStatus(order.status) %></span>
+                </div>
+                <h2><%= order.productSnapshot?.name || order.product?.name || 'Produce request' %></h2>
+                <p class="muted-text">Requested <strong><%= order.requestedQuantity %> <%= order.unit %></strong> from <%= order.farmerSnapshot?.farmName || order.farmerSnapshot?.name || order.farmer?.name || 'farmer' %>.</p>
+<% if (order.farmer?._id) { %>
+                  <a class="subtle-link" href="/dashboard/buyer/farmers/<%= order.farmer._id %>/profile">View farmer profile</a>
+                <% } %>
+              </div>
+            </div>
+
+            <dl class="product-meta order-meta">
+              <div>
+                <dt>Price at request</dt>
+                <dd><%= formatMoney(order.productSnapshot?.price, order.productSnapshot?.currency || 'FJD') %> / <%= order.unit %><br><small><%= orderVatSummary(order) %></small></dd>
+              </div>
+              <div>
+                <dt>Total price</dt>
+                <dd><strong><%= formatMoney(orderTotalPrice(order), order.productSnapshot?.currency || 'FJD') %></strong></dd>
+              </div>
+              <div>
+                <dt>VAT</dt>
+                <dd><%= formatMoney(orderVatAmount(order), order.productSnapshot?.currency || 'FJD') %></dd>
+              </div>
+              <div>
+                <dt>Location</dt>
+                <dd><%= order.productSnapshot?.location || 'Not set' %></dd>
+              </div>
+              <div>
+                <dt>Sent</dt>
+                <dd><%= formatDate(order.createdAt) %></dd>
+              </div>
+              <div>
+                <dt>Contact used</dt>
+                <dd><%= order.buyerContactEmail %></dd>
+              </div>
+              <% if (order.inventoryDeducted) { %>
+                <div>
+                  <dt>Inventory</dt>
+                  <dd>Reserved by farmer</dd>
+                </div>
+              <% } %>
+              <% if (order.inventoryRestoredAt) { %>
+                <div>
+                  <dt>Inventory restored</dt>
+                  <dd><%= formatDateTime(order.inventoryRestoredAt) %></dd>
+                </div>
+              <% } %>
+              <div>
+                <dt>Payment</dt>
+                <dd><%= order.paymentStatus === 'paid' ? `Paid by ${paymentMethodLabel(order.paymentMethod)}` : 'Not paid yet' %></dd>
+              </div>
+              <% if (order.receiptIssuedAt) { %>
+                <div>
+                  <dt>Receipt issued</dt>
+                  <dd><%= formatDateTime(order.receiptIssuedAt) %></dd>
+                </div>
+              <% } %>
+              <% if (order.cancelledByRole) { %>
+                <div>
+                  <dt>Cancelled by</dt>
+                  <dd><%= formatStatus(order.cancelledByRole) %></dd>
+                </div>
+              <% } %>
+            </dl>
+
+            <% if (!isHistory && order.paymentStatus !== 'paid' && (order.status === 'pending' || order.status === 'accepted')) { %>
+              <%- include('_farmer-payment-details', { source: order }) %>
+            <% } %>
+
+            <% if (order.status === 'accepted' || order.fulfillment?.status && order.fulfillment.status !== 'not_scheduled') { %>
+              <%- include('_schedule-panel', { order, viewerRole: 'buyer' }) %>
+            <% } %>
+
+            <% if (order.deliveryNote) { %>
+              <div class="note-box">
+                <strong>Pickup/delivery note</strong>
+                <p><%= order.deliveryNote %></p>
+              </div>
+            <% } %>
+
+            <% if (order.message) { %>
+              <div class="note-box">
+                <strong>Your message</strong>
+                <p><%= order.message %></p>
+              </div>
+            <% } %>
+
+            <% if (order.farmerResponse) { %>
+              <div class="note-box farmer-response-box">
+                <strong>Farmer response</strong>
+                <p><%= order.farmerResponse %></p>
+              </div>
+            <% } %>
+
+            <% if (order.history && order.history.length) { %>
+              <details class="history-panel">
+                <summary>View activity history</summary>
+                <ol class="history-list">
+                  <% order.history.forEach((event) => { %>
+                    <li>
+                      <strong><%= event.action %></strong>
+                      <span><%= formatStatus(event.actorRole) %> · <%= formatDateTime(event.createdAt) %></span>
+                      <% if (event.note) { %>
+                        <p><%= event.note %></p>
+                      <% } %>
+                    </li>
+                  <% }) %>
+                </ol>
+              </details>
+            <% } %>
+
+            <div class="product-actions order-actions">
+              <% if (order.receiptIssuedAt) { %>
+                <a class="btn btn-secondary" href="/dashboard/buyer/orders/<%= order._id %>/receipt"><%= order.receiptStatus === 'cancelled' ? 'View cancelled receipt' : 'View receipt' %></a>
+              <% } else { %>
+                <span class="btn btn-disabled" aria-disabled="true">Receipt pending</span>
+              <% } %>
+
+              <a class="btn btn-secondary" href="/dashboard/buyer/orders/<%= order._id %>">View order</a>
+              <a class="btn btn-secondary" href="/dashboard/buyer/orders/<%= order._id %>/print">Download order PDF</a>
+
+              <% if (order.farmer?._id) { %>
+                <a class="btn btn-secondary" href="/dashboard/messages/compose/<%= order.farmer._id %>?orderId=<%= order._id %>">Message farmer</a>
+                <a class="btn btn-secondary" href="/dashboard/buyer/farmers/<%= order.farmer._id %>/profile">Farmer profile</a>
+                <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=order&targetId=<%= order._id %>">Report order issue</a>
+              <% } %>
+
+              <% if (!order.receiptIssuedAt && (order.status === 'pending' || order.status === 'accepted')) { %>
+                <form action="/dashboard/buyer/orders/<%= order._id %>/cancel" method="POST" data-confirm="Cancel this order request? The farmer will be notified.">
+                  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                  <button class="btn btn-danger" type="submit">Cancel request</button>
+                </form>
+              <% } %>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

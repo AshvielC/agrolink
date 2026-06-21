@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title><%= title ? `${title} | ${appName}` : appName %></title>
+    <meta name="description" content="A trusted marketplace connecting farmers directly with buyers.">
+    <link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#17683a">
+<link rel="apple-touch-icon" href="<%= assetPath('/images/icons/apple-touch-icon.png') %>">
+    <link rel="icon" type="image/png" href="<%= assetPath('/images/icons/favicon.png') %>">
+    <link rel="stylesheet" href="<%= assetPath('/css/styles.css') %>">
+  </head>
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <header class="site-header">
+      <nav class="nav container" aria-label="Primary navigation">
+  <a class="brand" href="/" aria-label="AgroLink home">
+  <span class="brand-video-circle" aria-hidden="true">
+    <video
+      class="brand-video"
+      autoplay
+      muted
+      playsinline
+      preload="auto"
+    >
+      <source src="<%= assetPath('/videos/agrolink7.mp4') %>" type="video/mp4">
+    </video>
+  </span>
+
+  <span class="brand-text">
+  <span class="brand-name"><%= appName %></span>
+  <span class="brand-tagline">Grow.Connect.Trade</span>
+</span>
+</a>
+
+        <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu">
+          <span class="sr-only">Toggle menu</span>
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="nav-menu" id="nav-menu">
+          <a href="/#about">About us</a>
+          <a href="/contact">Contact us</a>
+
+          <% if (currentUser) { %>
+            <a href="/dashboard">Dashboard</a>
+            <% if (currentUser.role === 'buyer' || currentUser.role === 'farmer') { %>
+              <a href="/dashboard/profile">Profile</a>
+            <% } %>
+            <a href="/dashboard/messages">Inbox</a>
+            <% if (currentUser.role === 'buyer' || currentUser.role === 'farmer') { %>
+              <a href="/dashboard/reports">My reports</a>
+            <% } %>
+            <a class="notification-nav-link" href="/dashboard/notifications" data-notification-link>Notifications
+              <span class="notification-badge <%= unreadNotificationCount > 0 ? '' : 'is-hidden' %>" data-notification-badge aria-label="<%= unreadNotificationCount %> unread notifications"><%= unreadNotificationCount > 9 ? '9+' : unreadNotificationCount %></span>
+            </a>
+            <% if (currentUser.role === 'admin') { %>
+              <a href="/dashboard/admin">Admin</a>
+              <a href="/dashboard/admin/users">Users</a>
+              <a href="/dashboard/admin/products">Products</a>
+              <a href="/dashboard/admin/orders">Orders</a>
+              <a href="/dashboard/admin/messages">Message records</a>
+              <a href="/dashboard/admin/reports">Reports</a>
+              <a href="/dashboard/admin/security">Security</a>
+              <a href="/dashboard/admin/exports">Exports</a>
+            <% } %>
+            <% if (currentUser.role === 'buyer') { %>
+              <a href="/dashboard/buyer/marketplace">Marketplace</a>
+              <a href="/dashboard/buyer/orders">My requests</a>
+              <a href="/dashboard/buyer/orders/history">Order history</a>
+            <% } %>
+            <% if (currentUser.role === 'farmer' && currentUser.accountStatus === 'active') { %>
+              <a href="/dashboard/farmer/products">My produce</a>
+              <a href="/dashboard/farmer/orders">Buyer requests</a>
+              <a href="/dashboard/farmer/orders/history">Order history</a>
+            <% } %>
+            <form class="inline-form" action="/logout" method="POST">
+              <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+              <button class="link-button" type="submit">Logout</button>
+            </form>
+          <% } else { %>
+            <a href="/signup">Sign up</a>
+            <a class="nav-login" href="/login">Login</a>
+          <% } %>
+        </div>
+      </nav>
+    </header>
+
+    <% if (demoMode) { %>
+      <aside class="demo-mode-banner" role="status" aria-label="Demo mode notice">
+        <span><%= demoNotice %></span>
+      </aside>
+    <% } %>
+
+    <main id="main-content">
+      <% if (success) { %>
+        <div class="container alert alert-success"><%= success %></div>
+      <% } %>
+
+      <% if (error) { %>
+        <div class="container alert alert-error"><%= error %></div>
+      <% } %>
+
+      <%- body %>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-grid">
+        <div>
+          <p class="footer-brand"><%= appName %></p>
+          <p>Building stronger farm-to-market connections.</p>
+        </div>
+        <div>
+          <p class="footer-heading">Platform</p>
+          <a href="/signup/farmer">For farmers</a>
+          <a href="/signup/buyer">For buyers</a>
+        </div>
+        <div>
+          <p class="footer-heading">Company</p>
+          <a href="/#about">About us</a>
+          <a href="/contact">Contact us</a>
+        </div>
+      </div>
+      <div class="container footer-bottom">
+        <span>&copy; <%= new Date().getFullYear() %> <%= appName %>. All rights reserved.</span>
+      </div>
+    </footer>
+
+    <script src="<%= assetPath('/js/main.js') %>" defer></script>
+    <script src="<%= assetPath('/js/pwa.js') %>" defer></script>
+  </body>
+</html>

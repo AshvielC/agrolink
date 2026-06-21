@@ -1,0 +1,107 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Buyer dashboard</p>
+        <h1>Hello, <%= currentUser.name %>.</h1>
+        <p>Find farmers, browse available produce, and prepare order requests from one place.</p>
+      </div>
+      <div class="hero-action-stack">
+        <a class="btn btn-primary" href="/dashboard/buyer/marketplace">Browse produce</a>
+        <a class="btn btn-secondary" href="/dashboard/buyer/orders">My requests</a>
+        <a class="btn btn-secondary" href="/dashboard/buyer/orders/history">Order history</a>
+        <a class="btn btn-secondary" href="/dashboard/buyer/profile">My profile</a>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <% metrics.forEach((metric) => { %>
+        <article class="metric-card">
+          <span><%= metric.label %></span>
+          <strong><%= metric.value %></strong>
+        </article>
+      <% }) %>
+    </div>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Fresh listings</p>
+        <h2>Available produce</h2>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">View marketplace</a>
+    </div>
+
+    <% if (!recentProducts.length) { %>
+      <div class="empty-state compact-empty">
+        <span class="empty-icon">🧺</span>
+        <h2>No produce listed yet.</h2>
+        <p class="muted-text">Once farmers add produce, the latest listings will appear here.</p>
+      </div>
+    <% } else { %>
+      <div class="product-grid compact-product-grid">
+        <% recentProducts.forEach((product) => { %>
+          <article class="product-card product-card-buyer">
+            <%- include('../partials/product-image', { product }) %>
+            <div class="product-card-top">
+              <span class="product-category"><%= product.category %></span>
+              <span class="status-pill status-available">Available</span>
+            </div>
+            <h2><%= product.name %></h2>
+            <dl class="product-meta">
+              <div>
+                <dt>Quantity</dt>
+                <dd><%= product.quantity %> <%= product.unit %></dd>
+              </div>
+              <div>
+                <dt>Price</dt>
+                <dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %><br><small><%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> · <%= product.vatRate %>% VAT<% } %></small></dd>
+              </div>
+              <div>
+                <dt>Location</dt>
+                <dd><%= product.location %></dd>
+              </div>
+            </dl>
+            <div class="farmer-strip compact-farmer-strip">
+              <div>
+                <span>Farmer</span>
+                <strong><%= product.farmer?.farmerProfile?.farmName || product.farmer?.name || 'Farmer' %></strong>
+                <% if (product.farmer?._id) { %>
+                  <a class="subtle-link" href="/dashboard/buyer/farmers/<%= product.farmer._id %>/profile">View profile</a>
+                <% } %>
+              </div>
+              <div class="card-action-stack"><a class="btn btn-secondary" href="/dashboard/buyer/products/<%= product._id %>/request">Request</a><a class="btn btn-secondary" href="/dashboard/buyer/products/<%= product._id %>/contact">Contact</a></div>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Recent activity</p>
+        <h2>Your latest requests</h2>
+      </div>
+      <div class="card-action-stack"><a class="btn btn-secondary" href="/dashboard/buyer/orders">View active</a><a class="btn btn-secondary" href="/dashboard/buyer/orders/history">View history</a></div>
+    </div>
+
+    <% if (!recentRequests.length) { %>
+      <div class="empty-state compact-empty">
+        <span class="empty-icon">📩</span>
+        <h2>No requests sent yet.</h2>
+        <p class="muted-text">Use the Request button on a product to start buying from a farmer.</p>
+      </div>
+    <% } else { %>
+      <div class="mini-list">
+        <% recentRequests.forEach((request) => { %>
+          <article class="mini-row">
+            <div>
+              <span class="status-pill status-<%= request.status %>"><%= formatStatus(request.status) %></span>
+              <h3><%= request.productSnapshot?.name || 'Produce request' %></h3>
+              <p class="muted-text"><%= request.requestedQuantity %> <%= request.unit %> requested on <%= formatDate(request.createdAt) %></p>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

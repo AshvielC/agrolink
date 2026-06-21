@@ -1,0 +1,130 @@
+<% const fulfillment = order.fulfillment || {}; %>
+<% const fulfillmentStatus = fulfillment.status || 'not_scheduled'; %>
+<section class="schedule-panel note-box">
+  <div class="schedule-panel-header">
+    <div>
+      <strong>Pickup / delivery schedule</strong>
+      <p class="muted-text">Status: <span class="status-pill status-<%= fulfillmentStatus %>"><%= formatStatus(fulfillmentStatus) %></span></p>
+    </div>
+  </div>
+
+  <% if (fulfillment.method || fulfillment.requestedDate || fulfillment.requestedTime || fulfillment.location) { %>
+    <dl class="product-meta order-meta compact-meta">
+      <div><dt>Method</dt><dd><%= fulfillment.method ? formatStatus(fulfillment.method) : 'Not set' %></dd></div>
+      <div><dt>Date</dt><dd><%= formatDate(fulfillment.requestedDate) %></dd></div>
+      <div><dt>Time</dt><dd><%= fulfillment.requestedTime || 'Not set' %></dd></div>
+      <div><dt>Location / address</dt><dd><%= fulfillment.location || 'Not set' %></dd></div>
+      <% if (fulfillment.confirmedAt) { %><div><dt>Confirmed</dt><dd><%= formatDateTime(fulfillment.confirmedAt) %></dd></div><% } %>
+      <% if (fulfillment.completedAt) { %><div><dt>Completed</dt><dd><%= formatDateTime(fulfillment.completedAt) %></dd></div><% } %>
+    </dl>
+    <% if (fulfillment.note) { %><p><strong>Buyer note:</strong> <%= fulfillment.note %></p><% } %>
+    <% if (fulfillment.farmerNote) { %><p><strong>Farmer note:</strong> <%= fulfillment.farmerNote %></p><% } %>
+  <% } else { %>
+    <p class="muted-text">No pickup or delivery schedule has been requested yet.</p>
+  <% } %>
+
+  <% if (fulfillmentStatus === 'reschedule_requested') { %>
+    <div class="farmer-response-box note-box nested-note-box">
+      <strong>Farmer suggested a change</strong>
+      <dl class="product-meta order-meta compact-meta">
+        <div><dt>Date</dt><dd><%= formatDate(fulfillment.farmerProposedDate) %></dd></div>
+        <div><dt>Time</dt><dd><%= fulfillment.farmerProposedTime || 'Not set' %></dd></div>
+        <div><dt>Location / address</dt><dd><%= fulfillment.farmerProposedLocation || 'Not set' %></dd></div>
+      </dl>
+      <% if (fulfillment.farmerNote) { %><p><%= fulfillment.farmerNote %></p><% } %>
+      <% if (viewerRole === 'buyer' && order.status === 'accepted') { %>
+        <form action="/dashboard/buyer/orders/<%= order._id %>/schedule/confirm-proposal" method="POST" data-confirm="Confirm the farmer's suggested pickup/delivery schedule?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn btn-primary" type="submit">Confirm farmer proposal</button>
+        </form>
+      <% } %>
+    </div>
+  <% } %>
+
+  <% if (viewerRole === 'buyer' && order.status === 'accepted' && fulfillmentStatus !== 'completed') { %>
+    <details class="schedule-form-panel" <%= ['not_scheduled', 'cancelled'].includes(fulfillmentStatus) ? 'open' : '' %>>
+      <summary><%= fulfillmentStatus === 'not_scheduled' ? 'Request pickup or delivery' : 'Update pickup/delivery request' %></summary>
+      <form class="stacked-form" action="/dashboard/buyer/orders/<%= order._id %>/schedule" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <div class="form-grid two-col-form-grid">
+          <label>Method
+            <select name="method" required>
+              <option value="pickup" <%= fulfillment.method === 'pickup' ? 'selected' : '' %>>Pickup</option>
+              <option value="delivery" <%= fulfillment.method === 'delivery' ? 'selected' : '' %>>Delivery</option>
+            </select>
+          </label>
+          <label>Preferred date
+            <input type="date" name="requestedDate" value="<%= fulfillment.requestedDate ? new Date(fulfillment.requestedDate).toISOString().slice(0, 10) : '' %>" required>
+          </label>
+          <label>Preferred time
+            <input type="text" name="requestedTime" value="<%= fulfillment.requestedTime || '' %>" maxlength="80" placeholder="Example: 2:00 PM - 4:00 PM" required>
+          </label>
+          <label>Pickup location / delivery address
+            <input type="text" name="location" value="<%= fulfillment.location || '' %>" maxlength="220" required>
+          </label>
+        </div>
+        <label>Schedule note, optional
+          <textarea name="note" rows="3" maxlength="500" placeholder="Any pickup or delivery instructions"><%= fulfillment.note || '' %></textarea>
+        </label>
+        <button class="btn btn-primary" type="submit"><%= fulfillmentStatus === 'not_scheduled' ? 'Send schedule request' : 'Update schedule request' %></button>
+      </form>
+    </details>
+  <% } %>
+
+  <% if (viewerRole === 'farmer' && order.status === 'accepted') { %>
+    <details class="schedule-form-panel" <%= fulfillmentStatus === 'requested' ? 'open' : '' %>>
+      <summary>Manage pickup/delivery</summary>
+      <label>Farmer schedule note, optional
+        <textarea form="farmer-confirm-schedule-<%= order._id %>" name="farmerNote" rows="3" maxlength="500" placeholder="Add any pickup or delivery notes"><%= fulfillment.farmerNote || '' %></textarea>
+      </label>
+      <div class="product-actions order-actions">
+        <% if (fulfillmentStatus === 'requested' || fulfillmentStatus === 'reschedule_requested') { %>
+          <form id="farmer-confirm-schedule-<%= order._id %>" action="/dashboard/farmer/orders/<%= order._id %>/schedule" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="scheduleAction" value="confirm">
+            <button class="btn btn-primary" type="submit">Confirm buyer schedule</button>
+          </form>
+        <% } %>
+        <% if (fulfillmentStatus === 'confirmed' && order.receiptIssuedAt) { %>
+          <form action="/dashboard/farmer/orders/<%= order._id %>/schedule" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="scheduleAction" value="complete">
+            <input type="hidden" name="farmerNote" value="<%= fulfillment.farmerNote || '' %>">
+            <button class="btn btn-primary" type="submit" data-confirm-submit="Mark pickup/delivery as completed and move this order to history?">Mark pickup/delivery completed</button>
+          </form>
+        <% } else if (fulfillmentStatus === 'confirmed' && !order.receiptIssuedAt) { %>
+          <span class="btn btn-disabled" aria-disabled="true">Issue receipt before completion</span>
+        <% } %>
+        <% if (fulfillmentStatus !== 'not_scheduled' && fulfillmentStatus !== 'completed' && fulfillmentStatus !== 'cancelled') { %>
+          <form action="/dashboard/farmer/orders/<%= order._id %>/schedule" method="POST">
+            <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+            <input type="hidden" name="scheduleAction" value="cancel_schedule">
+            <input type="hidden" name="farmerNote" value="<%= fulfillment.farmerNote || '' %>">
+            <button class="btn btn-danger" type="submit" data-confirm-submit="Cancel this pickup/delivery schedule? The buyer will be notified.">Cancel schedule</button>
+          </form>
+        <% } %>
+      </div>
+
+      <form class="stacked-form" action="/dashboard/farmer/orders/<%= order._id %>/schedule" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <input type="hidden" name="scheduleAction" value="reschedule">
+        <h4>Suggest another schedule</h4>
+        <div class="form-grid two-col-form-grid">
+          <label>Proposed date
+            <input type="date" name="farmerProposedDate" value="<%= fulfillment.farmerProposedDate ? new Date(fulfillment.farmerProposedDate).toISOString().slice(0, 10) : '' %>">
+          </label>
+          <label>Proposed time
+            <input type="text" name="farmerProposedTime" value="<%= fulfillment.farmerProposedTime || '' %>" maxlength="80" placeholder="Example: Saturday morning">
+          </label>
+          <label>Proposed location / address
+            <input type="text" name="farmerProposedLocation" value="<%= fulfillment.farmerProposedLocation || fulfillment.location || '' %>" maxlength="220">
+          </label>
+        </div>
+        <label>Reason or note, optional
+          <textarea name="farmerNote" rows="3" maxlength="500" placeholder="Example: Friday is not available, but Saturday morning works."><%= fulfillment.farmerNote || '' %></textarea>
+        </label>
+        <button class="btn btn-secondary" type="submit">Suggest change</button>
+      </form>
+    </details>
+  <% } %>
+</section>

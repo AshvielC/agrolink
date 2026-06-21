@@ -1,0 +1,150 @@
+<section class="dashboard-section order-detail-page">
+  <div class="dashboard-header compact-dashboard-header">
+    <div>
+      <p class="eyebrow"><%= viewerRole === 'buyer' ? 'Buyer request' : 'Farmer order' %></p>
+      <h1>Order detail</h1>
+      <p class="muted-text">Order reference: <strong><%= orderReference(order) %></strong></p>
+    </div>
+    <div class="dashboard-actions no-print">
+      <a class="btn btn-secondary" href="/dashboard/<%= viewerRole %>/orders<%= ['rejected','completed','cancelled'].includes(order.status) ? '/history' : '' %>">Back to orders</a>
+      <a class="btn btn-secondary" href="/dashboard/<%= viewerRole %>/orders/<%= order._id %>/print">Download order PDF</a>
+      <% if (order.receiptIssuedAt) { %>
+        <a class="btn btn-primary" href="/dashboard/<%= viewerRole %>/orders/<%= order._id %>/receipt"><%= order.receiptStatus === 'cancelled' ? 'View cancelled receipt' : 'View receipt' %></a>
+      <% } %>
+    </div>
+  </div>
+
+  <article class="order-detail-card">
+    <div class="product-card-top order-card-topline">
+      <span class="product-category"><%= order.productSnapshot?.category || 'Produce' %></span>
+      <span class="status-pill status-<%= order.status %>"><%= formatStatus(order.status) %></span>
+    </div>
+
+    <div class="order-card-main order-detail-main">
+      <% if (order.productSnapshot?.imagePath) { %>
+        <img class="order-thumb" src="<%= order.productSnapshot.imagePath %>" alt="Photo of <%= orderProductName(order) %>">
+      <% } else { %>
+        <div class="order-thumb order-thumb-placeholder" aria-hidden="true">🌿</div>
+      <% } %>
+      <div>
+        <h2><%= orderProductName(order) %></h2>
+        <p class="muted-text"><%= order.requestedQuantity %> <%= order.unit %> requested on <%= formatDateTime(order.createdAt) %>.</p>
+        <p><%= orderFinancialNote(order) %></p>
+      </div>
+    </div>
+
+    <section class="detail-section">
+      <h3>Order summary</h3>
+      <dl class="product-meta order-meta">
+        <div><dt>Order reference</dt><dd><%= orderReference(order) %></dd></div>
+        <div><dt>Status</dt><dd><%= formatStatus(order.status) %></dd></div>
+        <div><dt>Requested quantity</dt><dd><%= order.requestedQuantity %> <%= order.unit %></dd></div>
+        <div><dt>Unit price</dt><dd><%= formatMoney(orderUnitPrice(order), orderCurrency(order)) %> / <%= order.unit %></dd></div>
+        <div><dt>VAT</dt><dd><%= orderVatSummary(order) %> · <%= formatMoney(orderVatAmount(order), orderCurrency(order)) %></dd></div>
+        <div><dt>Total price</dt><dd><strong><%= formatMoney(orderTotalPrice(order), orderCurrency(order)) %></strong></dd></div>
+        <div><dt>Payment status</dt><dd><%= formatStatus(order.paymentStatus || 'unpaid') %></dd></div>
+        <div><dt>Receipt status</dt><dd><%= formatStatus(order.receiptStatus || 'not_issued') %></dd></div>
+        <div><dt>Product location</dt><dd><%= order.productSnapshot?.location || 'Not set' %></dd></div>
+        <div><dt>Inventory</dt><dd><%= order.inventoryDeducted ? 'Reserved from stock' : 'Not currently reserved' %></dd></div>
+      </dl>
+    </section>
+
+    <section class="detail-section receipt-two-col">
+      <article class="receipt-party-card">
+        <h3>Buyer details</h3>
+        <dl class="profile-details compact-profile-details">
+          <div><dt>Name</dt><dd><%= orderBuyerName(order) %></dd></div>
+          <div><dt>Email</dt><dd><%= order.buyerContactEmail || order.buyerSnapshot?.email || order.buyer?.email || 'Not recorded' %></dd></div>
+          <div><dt>Phone</dt><dd><%= order.buyerContactPhone || 'Not recorded' %></dd></div>
+        </dl>
+      </article>
+
+      <article class="receipt-party-card">
+        <h3>Farmer details</h3>
+        <dl class="profile-details compact-profile-details">
+          <div><dt>Farmer / farm</dt><dd><%= orderFarmerName(order) %></dd></div>
+          <div><dt>Email</dt><dd><%= order.farmerSnapshot?.email || order.farmer?.email || 'Not recorded' %></dd></div>
+          <div><dt>Farm location</dt><dd><%= order.productSnapshot?.location || 'Not recorded' %></dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <section class="detail-section">
+      <h3>Pickup / delivery</h3>
+      <% const fulfillment = order.fulfillment || {}; %>
+      <% const fulfillmentStatus = fulfillment.status || 'not_scheduled'; %>
+      <dl class="product-meta order-meta">
+        <div><dt>Status</dt><dd><%= formatStatus(fulfillmentStatus) %></dd></div>
+        <div><dt>Method</dt><dd><%= fulfillment.method ? formatStatus(fulfillment.method) : 'Not set' %></dd></div>
+        <div><dt>Date</dt><dd><%= formatDate(fulfillment.requestedDate) %></dd></div>
+        <div><dt>Time</dt><dd><%= fulfillment.requestedTime || 'Not set' %></dd></div>
+        <div><dt>Location / address</dt><dd><%= fulfillment.location || 'Not set' %></dd></div>
+        <div><dt>Last updated by</dt><dd><%= fulfillment.updatedByRole ? formatStatus(fulfillment.updatedByRole) : 'Not set' %></dd></div>
+        <% if (fulfillment.confirmedAt) { %><div><dt>Confirmed</dt><dd><%= formatDateTime(fulfillment.confirmedAt) %></dd></div><% } %>
+        <% if (fulfillment.completedAt) { %><div><dt>Completed</dt><dd><%= formatDateTime(fulfillment.completedAt) %></dd></div><% } %>
+        <% if (fulfillment.cancelledAt) { %><div><dt>Schedule cancelled</dt><dd><%= formatDateTime(fulfillment.cancelledAt) %></dd></div><% } %>
+      </dl>
+      <% if (fulfillment.note) { %><div class="note-box"><strong>Buyer schedule note</strong><p><%= fulfillment.note %></p></div><% } %>
+      <% if (fulfillment.farmerNote) { %><div class="note-box farmer-response-box"><strong>Farmer schedule note</strong><p><%= fulfillment.farmerNote %></p></div><% } %>
+      <% if (fulfillmentStatus === 'reschedule_requested') { %>
+        <div class="note-box farmer-response-box">
+          <strong>Farmer proposed schedule</strong>
+          <p><%= formatDate(fulfillment.farmerProposedDate) %> · <%= fulfillment.farmerProposedTime || 'Not set' %></p>
+          <p><%= fulfillment.farmerProposedLocation || 'Location not set' %></p>
+        </div>
+      <% } %>
+    </section>
+
+    <section class="detail-section receipt-two-col">
+      <article class="receipt-party-card">
+        <h3>Payment details</h3>
+        <dl class="profile-details compact-profile-details">
+          <div><dt>Payment method</dt><dd><%= paymentMethodLabel(order.paymentMethod) %></dd></div>
+          <div><dt>Amount paid</dt><dd><%= order.paymentStatus === 'paid' ? formatMoney(order.amountPaid || orderTotalPrice(order), orderCurrency(order)) : 'Not paid yet' %></dd></div>
+          <div><dt>Payment reference</dt><dd><%= order.paymentReference || 'Not recorded' %></dd></div>
+          <div><dt>Receipt issued</dt><dd><%= order.receiptIssuedAt ? formatDateTime(order.receiptIssuedAt) : 'Not issued' %></dd></div>
+        </dl>
+      </article>
+
+      <article class="receipt-party-card">
+        <h3>Farmer payment information</h3>
+        <% const paymentDetails = farmerPaymentDetails(order); %>
+        <dl class="profile-details compact-profile-details">
+          <div><dt>Bank name</dt><dd><%= paymentDetails.bankName || 'Not recorded' %></dd></div>
+          <div><dt>Bank account</dt><dd><%= paymentDetails.bankAccountNumber || 'Not recorded' %></dd></div>
+          <div><dt>M-PAiSA</dt><dd><%= paymentDetails.mpaisaNumber || 'Not recorded' %></dd></div>
+          <div><dt>MyCash</dt><dd><%= paymentDetails.mycashNumber || 'Not recorded' %></dd></div>
+        </dl>
+      </article>
+    </section>
+
+    <% if (order.deliveryNote || order.message || order.farmerResponse || order.receiptNote || order.receiptStatus === 'cancelled') { %>
+      <section class="detail-section receipt-notes-grid">
+        <% if (order.deliveryNote) { %><div class="note-box"><strong>Original pickup/delivery note</strong><p><%= order.deliveryNote %></p></div><% } %>
+        <% if (order.message) { %><div class="note-box"><strong>Buyer message</strong><p><%= order.message %></p></div><% } %>
+        <% if (order.farmerResponse) { %><div class="note-box farmer-response-box"><strong>Farmer response</strong><p><%= order.farmerResponse %></p></div><% } %>
+        <% if (order.receiptNote) { %><div class="note-box farmer-response-box"><strong>Receipt note</strong><p><%= order.receiptNote %></p></div><% } %>
+        <% if (order.receiptStatus === 'cancelled') { %><div class="note-box alert-box"><strong>Receipt cancelled</strong><p><%= order.receiptCancellationReason || 'No reason recorded' %></p><p><%= formatDateTime(order.receiptCancelledAt) %></p></div><% } %>
+      </section>
+    <% } %>
+
+    <% if (order.history && order.history.length) { %>
+      <section class="detail-section print-history">
+        <h3>Activity history</h3>
+        <ol class="history-list">
+          <% order.history.forEach((event) => { %>
+            <li>
+              <strong><%= event.action %></strong>
+              <span><%= formatStatus(event.actorRole) %> · <%= formatDateTime(event.createdAt) %></span>
+              <% if (event.note) { %><p><%= event.note %></p><% } %>
+            </li>
+          <% }) %>
+        </ol>
+      </section>
+    <% } %>
+  </article>
+</section>
+
+<% if (typeof autoPrint !== 'undefined' && autoPrint) { %>
+  <div data-auto-print="true" hidden></div>
+<% } %>

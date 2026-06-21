@@ -1,0 +1,83 @@
+<section class="dashboard-section <%= printMode ? 'print-section' : '' %>">
+  <div class="container">
+    <% if (!printMode) { %>
+      <div class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h1>Review orders.</h1>
+          <p>Search orders by buyer name, buyer email, farmer name, farm name, product, location, and status.</p>
+        </div>
+        <div class="card-action-stack">
+          <a class="btn btn-secondary" href="/dashboard/admin">Back to admin</a>
+          <% const orderPrintQuery = new URLSearchParams(filters).toString(); %>
+          <a class="btn btn-primary" href="/dashboard/admin/orders/print?<%= orderPrintQuery %>">Print / save PDF</a>
+        </div>
+      </div>
+
+      <form class="filter-card order-filter-card" action="/dashboard/admin/orders" method="GET">
+        <label for="q">Search
+          <input id="q" name="q" type="search" maxlength="80" value="<%= filters.q || '' %>" placeholder="Buyer, farmer, farm, product...">
+        </label>
+        <label for="status">Order status
+          <select id="status" name="status">
+            <option value="">All statuses</option>
+            <% statuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+            <% }) %>
+          </select>
+        </label>
+        <div class="filter-actions"><button class="btn btn-primary" type="submit">Filter</button><a class="btn btn-secondary" href="/dashboard/admin/orders">Reset</a></div>
+      </form>
+    <% } else { %>
+      <div class="print-actions no-print">
+        <a class="btn btn-secondary" href="/dashboard/admin/orders?<%= new URLSearchParams(filters).toString() %>">Back to screen view</a>
+        <button class="btn btn-primary" type="button" data-print>Print / save PDF</button>
+      </div>
+      <div class="print-header">
+        <h1>Orders list</h1>
+        <p><%= appName %> · Generated <%= formatDateTime(new Date()) %></p>
+        <p>Filters: Status <%= filters.status || 'All' %>, Search <%= filters.q || 'None' %></p>
+      </div>
+    <% } %>
+
+    <% if (!orders.length) { %>
+      <div class="empty-state"><span class="empty-icon">📦</span><h2>No orders found.</h2></div>
+    <% } else { %>
+      <div class="table-card responsive-table">
+        <table>
+          <thead><tr><th>Date</th><th>Product</th><th>Buyer</th><th>Farmer</th><th>Quantity</th><th>Total</th><th>Status</th><th>Pickup/delivery</th><th>Inventory</th><% if (!printMode) { %><th>Actions</th><% } %></tr></thead>
+          <tbody>
+            <% orders.forEach((order) => { %>
+              <tr>
+                <td><%= formatDateTime(order.createdAt) %></td>
+                <td><strong><%= order.productSnapshot?.name || order.product?.name || 'Produce request' %></strong><br><small><%= order.productSnapshot?.location || '' %></small></td>
+                <td><%= order.buyerSnapshot?.name || order.buyer?.name || 'Buyer' %><br><small><%= order.buyerContactEmail %></small></td>
+                <td><%= order.farmerSnapshot?.farmName || order.farmerSnapshot?.name || order.farmer?.name || 'Farmer' %></td>
+                <td><%= order.requestedQuantity %> <%= order.unit %></td>
+                <td><strong><%= formatMoney(orderTotalPrice(order), order.productSnapshot?.currency || 'FJD') %></strong><br><small><%= orderVatSummary(order) %></small></td>
+                <td><span class="status-pill status-<%= order.status %>"><%= formatStatus(order.status) %></span></td>
+                <td><%= formatStatus(order.fulfillment?.status || 'not_scheduled') %><br><small><%= order.fulfillment?.method ? formatStatus(order.fulfillment.method) : '' %></small></td>
+                <td>
+                  <% if (order.inventoryDeducted) { %>
+                    Reserved
+                  <% } else if (order.inventoryRestoredAt) { %>
+                    Restored <%= formatDate(order.inventoryRestoredAt) %>
+                  <% } else { %>
+                    Not reserved
+                  <% } %>
+                </td>
+                <% if (!printMode) { %>
+                  <td class="table-actions">
+                    <a class="btn btn-secondary btn-small" href="/dashboard/admin/orders/<%= order._id %>">View</a>
+                    <a class="btn btn-secondary btn-small" href="/dashboard/admin/orders/<%= order._id %>/print">Print/PDF</a>
+                  </td>
+                <% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+    
+  </div>
+</section>

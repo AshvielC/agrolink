@@ -1,0 +1,59 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="dashboard-hero compact-hero">
+      <div>
+        <p class="eyebrow">Contact farmer</p>
+        <h1>Message <%= product.farmer?.farmerProfile?.farmName || product.farmer?.name || 'the farmer' %>.</h1>
+        <p>Ask a question about <strong><%= product.name %></strong>. Your message will be sent through the in-app message center and the farmer will receive a notification.</p>
+        <% if (product.farmer?._id) { %>
+          <a class="subtle-link" href="/dashboard/buyer/farmers/<%= product.farmer._id %>/profile">View farmer profile</a>
+        <% } %>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">Back to marketplace</a>
+    </div>
+
+    <article class="summary-card contact-product-summary">
+      <%- include('../partials/product-image', { product }) %>
+      <div>
+        <span class="product-category"><%= product.category %></span>
+        <h2><%= product.name %></h2>
+        <p class="muted-text"><%= product.quantity %> <%= product.unit %> available in <%= product.location %>.</p>
+        <p><strong><%= formatMoney(product.price, product.currency) %></strong> / <%= product.unit %></p>
+        <% if (product.farmer?.farmerProfile?.phone) { %>
+          <p class="muted-text">Farmer phone: <%= product.farmer.farmerProfile.phone %></p>
+        <% } %>
+      </div>
+    </article>
+
+    <%- include('../partials/form-errors', { errors }) %>
+
+    <form class="form-card" action="/dashboard/buyer/products/<%= product._id %>/contact" method="POST" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <label for="subject">
+        Subject
+        <input id="subject" name="subject" type="text" maxlength="120" value="<%= formData.subject %>" required>
+      </label>
+
+      <label for="message">
+        Message to farmer
+        <textarea id="message" name="message" rows="7" maxlength="1500" required placeholder="Type your question, preferred pickup time, or buying details..."><%= formData.message %></textarea>
+      </label>
+
+      <label for="buyerEmail">
+        Contact email
+        <input id="buyerEmail" name="buyerEmail" type="email" maxlength="254" value="<%= formData.buyerEmail %>" required>
+      </label>
+
+      <label for="buyerPhone">
+        Phone number <span class="muted-text">optional</span>
+        <input id="buyerPhone" name="buyerPhone" type="tel" maxlength="40" value="<%= formData.buyerPhone %>">
+      </label>
+
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Email farmer</button>
+        <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">Cancel</a>
+      </div>
+    </form>
+  </div>
+</section>

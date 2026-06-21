@@ -1,0 +1,86 @@
+<section class="dashboard-section product-detail-section">
+  <div class="container">
+    <div class="dashboard-hero product-detail-hero">
+      <div>
+        <p class="eyebrow">Product details</p>
+        <h1><%= product.name %></h1>
+        <p>Review the produce, farmer, payment options, VAT setting, and estimated total before sending a request.</p>
+      </div>
+      <div class="button-row">
+        <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">Back to marketplace</a>
+        <a class="btn btn-primary" href="/dashboard/buyer/products/<%= product._id %>/request">Request to buy</a>
+        <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=product&targetId=<%= product._id %>">Report listing</a>
+      </div>
+    </div>
+
+    <div class="product-detail-grid">
+      <article class="product-detail-card product-detail-media-card">
+        <%- include('../partials/product-image', { product }) %>
+        <div class="product-card-top">
+          <span class="product-category"><%= product.category %></span>
+          <span class="status-pill status-available">Available</span>
+        </div>
+        <p class="muted-text"><%= product.description || 'No description added yet.' %></p>
+      </article>
+
+      <article class="product-detail-card">
+        <p class="eyebrow">Listing information</p>
+        <dl class="product-meta detail-meta">
+          <div><dt>Available quantity</dt><dd><%= product.quantity %> <%= product.unit %></dd></div>
+          <div><dt>Unit price</dt><dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %></dd></div>
+          <div><dt>VAT setting</dt><dd><%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> · <%= product.vatRate %>% VAT<% } %></dd></div>
+          <div><dt>Location</dt><dd><%= product.location %></dd></div>
+          <div><dt>Ready date</dt><dd><%= formatDate(product.harvestDate) %></dd></div>
+        </dl>
+
+        <div class="order-total-box product-total-calculator" data-order-calculator data-unit-price="<%= product.price %>" data-vat-mode="<%= product.vatMode || 'none' %>" data-vat-rate="<%= product.vatRate || 0 %>" data-currency="<%= product.currency || 'FJD' %>">
+          <label for="requestedQuantity">
+            Estimate total for quantity
+            <input id="requestedQuantity" name="requestedQuantity" type="number" min="0" max="<%= product.quantity %>" step="0.01" value="1">
+          </label>
+          <div class="total-row"><span>Subtotal excl. VAT</span><strong data-order-subtotal><%= formatMoney(product.price, product.currency) %></strong></div>
+          <div class="total-row"><span>VAT</span><strong data-order-vat><%= formatMoney(0, product.currency) %></strong></div>
+          <div class="total-row total-row-grand"><span>Estimated total</span><strong data-order-total><%= formatMoney(product.price, product.currency) %></strong></div>
+          <p class="muted-text">This is an estimate only. The final receipt is issued by the farmer after successful payment.</p>
+        </div>
+      </article>
+
+      <article class="product-detail-card">
+        <p class="eyebrow">Farmer</p>
+        <div class="profile-mini-card">
+          <%- include('../partials/profile-image', { user: product.farmer }) %>
+          <div>
+            <h2><%= product.farmer?.farmerProfile?.farmName || product.farmer?.name || 'Farmer' %></h2>
+            <p class="muted-text"><%= product.farmer?.farmerProfile?.description || 'No farmer description added yet.' %></p>
+            <dl class="profile-details compact-profile-details">
+              <% if (product.farmer?.farmerProfile?.farmLocation) { %>
+                <div><dt>Farm location</dt><dd><%= product.farmer.farmerProfile.farmLocation %></dd></div>
+              <% } %>
+              <% if (product.farmer?.farmerProfile?.pickupOptions) { %>
+                <div><dt>Pickup/delivery</dt><dd><%= product.farmer.farmerProfile.pickupOptions %></dd></div>
+              <% } %>
+            </dl>
+            <div class="button-row">
+              <a class="btn btn-secondary" href="/dashboard/buyer/farmers/<%= product.farmer._id %>/profile">View farmer profile</a>
+              <a class="btn btn-secondary" href="/dashboard/buyer/products/<%= product._id %>/contact">Message farmer</a>
+              <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=user&targetId=<%= product.farmer._id %>">Report farmer</a>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="product-detail-card">
+        <%- include('../orders/_farmer-payment-details', { source: product }) %>
+      </article>
+
+      <article class="product-detail-card analytics-card">
+        <p class="eyebrow">Product activity</p>
+        <dl class="product-meta detail-meta">
+          <div><dt>Views</dt><dd><%= product.analytics?.viewCount || 0 %></dd></div>
+          <div><dt>Buyer requests</dt><dd><%= product.analytics?.requestCount || 0 %></dd></div>
+          <div><dt>Buyer messages</dt><dd><%= product.analytics?.contactCount || 0 %></dd></div>
+        </dl>
+      </article>
+    </div>
+  </div>
+</section>

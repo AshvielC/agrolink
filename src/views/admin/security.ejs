@@ -1,0 +1,88 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Admin security</p>
+        <h1>Security dashboard.</h1>
+        <p>Monitor failed logins, locked accounts, document access, and warning/critical audit events.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin">Back to admin</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/audit">Full audit trail</a>
+      </div>
+    </div>
+
+    <div class="metric-grid">
+      <% metrics.forEach((metric) => { %>
+        <article class="metric-card">
+          <span><%= metric.label %></span>
+          <strong><%= metric.value %></strong>
+        </article>
+      <% }) %>
+    </div>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Access protection</p>
+        <h2>Temporarily locked accounts</h2>
+      </div>
+    </div>
+
+    <% if (!lockedUsers.length) { %>
+      <div class="empty-state compact-empty"><span class="empty-icon">🔒</span><h2>No locked accounts.</h2><p class="muted-text">Accounts are locked temporarily after repeated failed login attempts.</p></div>
+    <% } else { %>
+      <div class="table-card responsive-table">
+        <table>
+          <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Failed attempts</th><th>Locked until</th><th>Action</th></tr></thead>
+          <tbody>
+            <% lockedUsers.forEach((user) => { %>
+              <tr>
+                <td><strong><%= user.name %></strong><br><small><%= user.email %></small></td>
+                <td><%= formatStatus(user.role) %></td>
+                <td><span class="status-pill status-<%= user.accountStatus || 'active' %>"><%= formatStatus(user.accountStatus || 'active') %></span></td>
+                <td><%= user.loginSecurity?.failedLoginAttempts || 0 %></td>
+                <td><%= formatDateTime(user.loginSecurity?.lockedUntil) %></td>
+                <td>
+                  <form class="inline-form" action="/dashboard/admin/security/users/<%= user._id %>/unlock" method="POST" data-confirm="Unlock this account now?">
+                    <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                    <button class="btn btn-secondary" type="submit">Unlock</button>
+                  </form>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+
+    <div class="section-heading row-heading">
+      <div>
+        <p class="eyebrow">Security events</p>
+        <h2>Recent warning and security audit entries</h2>
+      </div>
+    </div>
+
+    <% if (!recentSecurityLogs.length) { %>
+      <div class="empty-state compact-empty"><span class="empty-icon">🛡️</span><h2>No recent security events.</h2></div>
+    <% } else { %>
+      <div class="table-card responsive-table">
+        <table>
+          <thead><tr><th>Date</th><th>Severity</th><th>Action</th><th>Actor</th><th>Target</th><th>Request</th><th>Details</th></tr></thead>
+          <tbody>
+            <% recentSecurityLogs.forEach((log) => { %>
+              <tr>
+                <td><%= formatDateTime(log.createdAt) %></td>
+                <td><span class="status-pill status-<%= log.severity || 'info' %>"><%= formatStatus(log.severity || 'info') %></span></td>
+                <td><code><%= log.action %></code></td>
+                <td><strong><%= log.actorName || 'System' %></strong><br><small><%= log.actorEmail || formatStatus(log.actorRole || 'system') %></small></td>
+                <td><%= log.targetLabel || log.targetType || 'System' %></td>
+                <td><small><%= log.method || '' %> <%= log.path || '' %><br><%= log.ipAddress || '' %></small></td>
+                <td><%= log.message || 'No details recorded.' %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>

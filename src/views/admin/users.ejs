@@ -1,0 +1,98 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Manage users.</h1>
+        <p>Approve buyers and farmers, review verification documents, search users, and print user records.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin">Back to admin</a>
+        <% const printQuery = new URLSearchParams(filters).toString(); %>
+        <a class="btn btn-primary" href="/dashboard/admin/users/print?<%= printQuery %>">Print / save PDF</a>
+      </div>
+    </div>
+
+    <form class="filter-card" action="/dashboard/admin/users" method="GET">
+      <label for="q">Search<input id="q" name="q" type="search" maxlength="80" value="<%= filters.q %>" placeholder="Name, email, phone, farm name..."></label>
+      <label for="location">Location<input id="location" name="location" type="search" maxlength="80" value="<%= filters.location || '' %>" placeholder="Farm or buyer location"></label>
+      <label for="role">Role
+        <select id="role" name="role">
+          <option value="">All roles</option>
+          <% roles.forEach((role) => { %>
+            <option value="<%= role %>" <%= filters.role === role ? 'selected' : '' %>><%= formatStatus(role) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="status">Account status
+        <select id="status" name="status">
+          <option value="">All statuses</option>
+          <% statuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="documentStatus">Document status
+        <select id="documentStatus" name="documentStatus">
+          <option value="">All document statuses</option>
+          <% documentStatuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= filters.documentStatus === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <div class="filter-actions"><button class="btn btn-primary" type="submit">Filter</button><a class="btn btn-secondary" href="/dashboard/admin/users">Reset</a></div>
+    </form>
+
+    <% if (!users.length) { %>
+      <div class="empty-state"><span class="empty-icon">👥</span><h2>No users found.</h2></div>
+    <% } else { %>
+      <div class="table-card responsive-table">
+        <table>
+          <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Documents</th><th>Phone</th><th>Profile</th><th>Joined</th><th>Admin action</th></tr></thead>
+          <tbody>
+            <% users.forEach((user) => { %>
+              <tr>
+                <td>
+                  <strong><%= user.name %></strong><br>
+                  <small><%= user.email %></small><br>
+                  <a class="subtle-link" href="/dashboard/admin/users/<%= user._id %>">View details</a> ·
+                  <a class="subtle-link" href="/dashboard/admin/users/<%= user._id %>/print">Print</a>
+                </td>
+                <td><%= formatStatus(user.role) %></td>
+                <td><span class="status-pill status-<%= user.accountStatus || 'active' %>"><%= formatStatus(user.accountStatus || 'active') %></span></td>
+                <td><span class="status-pill status-<%= user.documentReviewStatus || 'pending' %>"><%= formatStatus(user.documentReviewStatus || 'pending') %></span></td>
+                <td><%= user.phone || user.farmerProfile?.phone || user.buyerProfile?.phone || 'Not provided' %></td>
+                <td>
+                  <% if (user.role === 'farmer') { %>
+                    <%= user.farmerProfile?.farmName || 'Farm name not set' %><br><small><%= user.farmerProfile?.farmLocation || '' %></small>
+                  <% } else if (user.role === 'buyer') { %>
+                    <%= user.buyerProfile?.organization || 'Buyer' %><br><small><%= user.buyerProfile?.buyingLocation || '' %></small>
+                  <% } else { %>
+                    Platform administrator
+                  <% } %>
+                </td>
+                <td><%= formatDate(user.createdAt) %></td>
+                <td>
+                  <% if (user.role === 'admin') { %>
+                    <span class="muted-text">Protected</span>
+                  <% } else { %>
+                    <form class="admin-inline-form" action="/dashboard/admin/users/<%= user._id %>/status" method="POST" data-confirm="Update this user's account status?">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <select name="accountStatus" aria-label="Account status for <%= user.name %>">
+                        <% statuses.forEach((status) => { %>
+                          <option value="<%= status %>" <%= (user.accountStatus || 'active') === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+                        <% }) %>
+                      </select>
+                      <input name="statusNote" type="text" maxlength="300" placeholder="Optional note">
+                      <button class="btn btn-secondary" type="submit">Update</button>
+                    </form>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>

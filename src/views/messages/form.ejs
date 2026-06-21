@@ -1,0 +1,39 @@
+<section class="auth-section">
+  <div class="container auth-shell">
+    <div class="auth-card form-card wide-form-card">
+      <p class="eyebrow">Message center</p>
+      <h1>Message <%= recipient.farmerProfile?.farmName || recipient.buyerProfile?.organization || recipient.name %></h1>
+      <p class="muted-text">This message will be saved in AgroLink and delivered through in-app notifications.</p>
+
+      <% if (context?.orderSnapshot?.reference || context?.productSnapshot?.name) { %>
+        <div class="note-box">
+          <strong>Related record</strong>
+          <% if (context.orderSnapshot?.reference) { %>
+            <p>Order: <%= context.orderSnapshot.reference %> <%= context.orderSnapshot.status ? `(${formatStatus(context.orderSnapshot.status)})` : '' %></p>
+          <% } %>
+          <% if (context.productSnapshot?.name) { %>
+            <p>Product: <%= context.productSnapshot.name %></p>
+          <% } %>
+        </div>
+      <% } %>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form action="" method="POST">
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+        <label for="subject">
+          Subject
+          <input id="subject" name="subject" type="text" maxlength="140" value="<%= formData.subject %>" required>
+        </label>
+        <label for="body">
+          Message
+          <textarea id="body" name="body" rows="8" maxlength="2500" required><%= formData.body %></textarea>
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-primary btn-full" type="submit">Send message</button>
+          <a class="btn btn-secondary" href="/dashboard/messages">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

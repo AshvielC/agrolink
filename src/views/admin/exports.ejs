@@ -1,0 +1,182 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>Export center.</h1>
+        <p>Export platform records to CSV or open clean print pages that can be saved as PDF from your browser.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin">Back to admin</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/audit">Audit trail</a>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h2>How PDF exports work</h2>
+      <p class="muted-text">Use <strong>Print / save PDF</strong> to open a print-friendly view, then choose <strong>Save as PDF</strong> in Chrome, Edge, or your browser's print dialog. Use <strong>Download CSV</strong> for spreadsheets and accounting/reporting work.</p>
+    </div>
+
+    <div class="export-grid">
+      <% cards.forEach((card) => { %>
+        <article class="export-card">
+          <div class="export-card-heading">
+            <div>
+              <p class="eyebrow">Export</p>
+              <h2><%= card.title %></h2>
+            </div>
+          </div>
+          <p class="muted-text"><%= card.description %></p>
+
+          <form class="export-form" method="GET">
+            <% if (card.fields.includes('q')) { %>
+              <label>Search
+                <input name="q" type="search" maxlength="100" placeholder="Name, farm, product, reference...">
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('role')) { %>
+              <label>Role
+                <select name="role">
+                  <option value="">All roles</option>
+                  <% roles.forEach((role) => { %><option value="<%= role %>"><%= formatStatus(role) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.dataset === 'users' && card.fields.includes('status')) { %>
+              <label>Account status
+                <select name="status">
+                  <option value="">All statuses</option>
+                  <% accountStatuses.forEach((status) => { %><option value="<%= status %>"><%= formatStatus(status) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('documentStatus')) { %>
+              <label>Document status
+                <select name="documentStatus">
+                  <option value="">All document statuses</option>
+                  <% documentStatuses.forEach((status) => { %><option value="<%= status %>"><%= formatStatus(status) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('category')) { %>
+              <label>Category
+                <select name="category">
+                  <option value="">All categories</option>
+                  <% productCategories.forEach((category) => { %><option value="<%= category %>"><%= category %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.dataset === 'products' && card.fields.includes('status')) { %>
+              <label>Product status
+                <select name="status">
+                  <option value="">All statuses</option>
+                  <% productStatuses.forEach((status) => { %><option value="<%= status %>"><%= formatStatus(status) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.dataset === 'orders' && card.fields.includes('status')) { %>
+              <label>Order status
+                <select name="status">
+                  <option value="">All statuses</option>
+                  <% orderStatuses.forEach((status) => { %><option value="<%= status %>"><%= formatStatus(status) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('paymentStatus')) { %>
+              <label>Payment status
+                <select name="paymentStatus">
+                  <option value="">All payment statuses</option>
+                  <% paymentStatuses.forEach((status) => { %><option value="<%= status %>"><%= formatStatus(status) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.dataset === 'reports' && card.fields.includes('status')) { %>
+              <label>Report status
+                <select name="status">
+                  <option value="">All statuses</option>
+                  <% reportStatuses.forEach((status) => { %><option value="<%= status %>"><%= formatStatus(status) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('reason')) { %>
+              <label>Report reason
+                <select name="reason">
+                  <option value="">All reasons</option>
+                  <% reportReasons.forEach((reason) => { %><option value="<%= reason %>"><%= formatStatus(reason) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('targetType')) { %>
+              <label>Target type
+                <select name="targetType">
+                  <option value="">All targets</option>
+                  <% reportTargetTypes.forEach((targetType) => { %><option value="<%= targetType %>"><%= formatStatus(targetType) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('messageType')) { %>
+              <label>Message type
+                <select name="messageType">
+                  <option value="">All message types</option>
+                  <% messageTypes.forEach((messageType) => { %><option value="<%= messageType %>"><%= formatStatus(messageType) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('actorRole')) { %>
+              <label>Actor role
+                <select name="actorRole">
+                  <option value="">All roles</option>
+                  <% actorRoles.forEach((role) => { %><option value="<%= role %>"><%= formatStatus(role) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('severity')) { %>
+              <label>Severity
+                <select name="severity">
+                  <option value="">All severities</option>
+                  <% severities.forEach((severity) => { %><option value="<%= severity %>"><%= formatStatus(severity) %></option><% }) %>
+                </select>
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('location')) { %>
+              <label>Location
+                <input name="location" type="search" maxlength="100" placeholder="Location or address">
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('dateFrom')) { %>
+              <label>From date
+                <input name="dateFrom" type="date">
+              </label>
+            <% } %>
+
+            <% if (card.fields.includes('dateTo')) { %>
+              <label>To date
+                <input name="dateTo" type="date">
+              </label>
+            <% } %>
+
+            <div class="export-actions">
+              <button class="btn btn-primary" type="submit" formaction="/dashboard/admin/exports/<%= card.dataset %>/print">Print / save PDF</button>
+              <button class="btn btn-secondary" type="submit" formaction="/dashboard/admin/exports/<%= card.dataset %>/csv">Download CSV</button>
+            </div>
+          </form>
+        </article>
+      <% }) %>
+    </div>
+  </div>
+</section>

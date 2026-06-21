@@ -1,0 +1,25 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="empty-state">
+      <span class="empty-icon">⏳</span>
+      <p class="eyebrow">Farmer approval pending</p>
+      <h1>Your farmer account is waiting for admin approval.</h1>
+      <p class="muted-text">You can log in, but product listing and buyer request features will unlock after an administrator approves your documents and account.</p>
+      <div class="order-card text-left">
+        <h2>Verification status</h2>
+        <dl class="product-meta order-meta">
+          <div><dt>Overall documents</dt><dd><span class="status-pill status-<%= user?.documentReviewStatus || 'pending' %>"><%= formatStatus(user?.documentReviewStatus || 'pending') %></span></dd></div>
+          <div><dt>TIN document</dt><dd><span class="status-pill status-<%= user?.verificationDocuments?.tinDocument?.status || 'pending' %>"><%= formatStatus(user?.verificationDocuments?.tinDocument?.status || 'pending') %></span></dd></div>
+          <div><dt>Business registration</dt><dd><span class="status-pill status-<%= user?.verificationDocuments?.businessRegistrationCertificate?.status || 'pending' %>"><%= formatStatus(user?.verificationDocuments?.businessRegistrationCertificate?.status || 'pending') %></span></dd></div>
+        </dl>
+        <% if (user?.documentReviewNote) { %><p><strong>Admin note:</strong> <%= user.documentReviewNote %></p><% } %>
+        <% if (user?.verificationDocuments?.tinDocument?.rejectionReason) { %><p><strong>TIN rejection reason:</strong> <%= user.verificationDocuments.tinDocument.rejectionReason %></p><% } %>
+        <% if (user?.verificationDocuments?.businessRegistrationCertificate?.rejectionReason) { %><p><strong>Business registration rejection reason:</strong> <%= user.verificationDocuments.businessRegistrationCertificate.rejectionReason %></p><% } %>
+      </div>
+      <div class="form-actions split-actions">
+        <a class="btn btn-primary" href="/dashboard/farmer/profile">Update profile</a>
+        <a class="btn btn-secondary" href="/contact">Contact support</a>
+      </div>
+    </div>
+  </div>
+</section>

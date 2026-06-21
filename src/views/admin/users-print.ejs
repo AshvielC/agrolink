@@ -1,0 +1,33 @@
+<section class="dashboard-section print-section">
+  <div class="container">
+    <div class="print-actions no-print">
+      <a class="btn btn-secondary" href="/dashboard/admin/users?<%= new URLSearchParams(filters).toString() %>">Back to screen view</a>
+      <button class="btn btn-primary" type="button" data-print>Print / save PDF</button>
+    </div>
+    <div class="print-header">
+      <h1>Users list</h1>
+      <p><%= appName %> · Generated <%= formatDateTime(generatedAt) %></p>
+      <p>Filters: Role <%= filters.role || 'All' %>, Status <%= filters.status || 'All' %>, Search <%= filters.q || 'None' %>, Location <%= filters.location || 'None' %>, Document status <%= filters.documentStatus || 'All' %></p>
+    </div>
+
+    <div class="table-card responsive-table">
+      <table>
+        <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Documents</th><th>Phone</th><th>Profile</th><th>Location</th><th>Joined</th></tr></thead>
+        <tbody>
+          <% users.forEach((user) => { %>
+            <tr>
+              <td><strong><%= user.name %></strong><br><small><%= user.email %></small></td>
+              <td><%= formatStatus(user.role) %></td>
+              <td><%= formatStatus(user.accountStatus || 'active') %></td>
+              <td><%= formatStatus(user.documentReviewStatus || 'pending') %></td>
+              <td><%= user.phone || user.farmerProfile?.phone || user.buyerProfile?.phone || '' %></td>
+              <td><%= user.role === 'farmer' ? (user.farmerProfile?.farmName || '') : user.role === 'buyer' ? (user.buyerProfile?.organization || '') : 'Admin' %></td>
+              <td><%= user.role === 'farmer' ? (user.farmerProfile?.farmLocation || '') : user.role === 'buyer' ? (user.buyerProfile?.buyingLocation || '') : '' %></td>
+              <td><%= formatDate(user.createdAt) %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

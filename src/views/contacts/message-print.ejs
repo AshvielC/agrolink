@@ -1,0 +1,39 @@
+<section class="dashboard-section <%= printMode ? 'print-section' : '' %>">
+  <div class="container narrow-container">
+    <% if (!printMode) { %>
+      <div class="dashboard-hero">
+        <div>
+          <p class="eyebrow">Buyer message</p>
+          <h1><%= message.subject %></h1>
+          <p>Message received from a buyer.</p>
+        </div>
+        <div class="card-action-stack">
+          <a class="btn btn-secondary" href="/dashboard/farmer/messages">Back to messages</a>
+          <a class="btn btn-primary" href="/dashboard/farmer/messages/<%= message._id %>/print">Print message</a>
+        </div>
+      </div>
+    <% } else { %>
+      <div class="print-header">
+        <h1>Buyer contact message</h1>
+        <p><%= appName %> · Generated <%= formatDateTime(new Date()) %></p>
+      </div>
+    <% } %>
+
+    <article class="order-card">
+      <p class="eyebrow"><%= formatDateTime(message.createdAt) %></p>
+      <h2><%= message.subject %></h2>
+      <dl class="product-meta order-meta">
+        <div><dt>Buyer</dt><dd><%= message.buyerSnapshot?.name || 'Buyer' %></dd></div>
+        <div><dt>Email</dt><dd><%= message.buyerEmail %></dd></div>
+        <div><dt>Phone</dt><dd><%= message.buyerPhone || 'Not provided' %></dd></div>
+        <div><dt>Product</dt><dd><%= message.productSnapshot?.name || 'Product' %></dd></div>
+        <div><dt>Product location</dt><dd><%= message.productSnapshot?.location || 'Not set' %></dd></div>
+      </dl>
+      <div class="note-box">
+        <strong>Message</strong>
+        <p><%= message.message %></p>
+      </div>
+    </article>
+    <% if (printMode) { %><div data-auto-print="true" hidden></div><% } %>
+  </div>
+</section>

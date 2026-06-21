@@ -1,0 +1,58 @@
+<section class="dashboard-section">
+  <div class="container narrow-container">
+    <div class="dashboard-hero compact-hero">
+      <div>
+        <p class="eyebrow">Buyer profile</p>
+        <h1>Edit your buyer details.</h1>
+        <p>These details can auto-fill your requests and help farmers contact you accurately.</p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/buyer/profile">Back to profile</a>
+    </div>
+
+    <%- include('../partials/form-errors', { errors }) %>
+
+    <form class="form-card" action="/dashboard/buyer/profile" method="POST" enctype="multipart/form-data" novalidate>
+      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+      <div class="profile-upload-row">
+        <%- include('../partials/profile-image', { user: buyer, label: formData.organization || formData.name || 'Buyer', fallbackIcon: '🛒', className: '' }) %>
+        <div>
+          <label for="profileImage">Profile photo or business logo
+            <input id="profileImage" name="profileImage" type="file" accept="image/jpeg,image/png,image/webp">
+          </label>
+          <span class="field-hint">JPG, PNG, or WebP. Maximum 5MB.</span>
+          <% if (buyer?.profileImage?.path) { %>
+            <label class="checkbox-label"><input type="checkbox" name="removeProfileImage" value="1"> Remove current image</label>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="name">Your name<input id="name" name="name" type="text" maxlength="80" value="<%= formData.name %>" required></label>
+        <label for="organization">Organization/business name<input id="organization" name="organization" type="text" maxlength="120" value="<%= formData.organization %>"></label>
+      </div>
+
+      <div class="form-row">
+        <label for="contactName">Contact name<input id="contactName" name="contactName" type="text" maxlength="120" value="<%= formData.contactName %>"></label>
+        <label for="phone">Phone number<input id="phone" name="phone" type="tel" maxlength="40" value="<%= formData.phone %>"></label>
+      </div>
+
+      <label for="buyingLocation">Buying location<input id="buyingLocation" name="buyingLocation" type="text" maxlength="120" value="<%= formData.buyingLocation %>" placeholder="Example: Suva, Fiji"></label>
+      <label for="deliveryAddress">Delivery address<textarea id="deliveryAddress" name="deliveryAddress" rows="3" maxlength="250"><%= formData.deliveryAddress %></textarea></label>
+      <label for="preferredContactMethod">Preferred contact method
+        <select id="preferredContactMethod" name="preferredContactMethod">
+          <% ['email', 'phone', 'either'].forEach((method) => { %>
+            <option value="<%= method %>" <%= formData.preferredContactMethod === method ? 'selected' : '' %>><%= formatStatus(method) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="interestedProducts">Interested products<input id="interestedProducts" name="interestedProducts" type="text" maxlength="200" value="<%= formData.interestedProducts %>" placeholder="Example: fresh vegetables, fruits, root crops"></label>
+      <label for="buyingNotes">Buying notes<textarea id="buyingNotes" name="buyingNotes" rows="5" maxlength="600" placeholder="Tell farmers what you usually buy and how you prefer delivery..."><%= formData.buyingNotes %></textarea></label>
+
+      <div class="form-actions split-actions">
+        <a class="btn btn-secondary" href="/dashboard/buyer/profile">Cancel</a>
+        <button class="btn btn-primary" type="submit">Save profile</button>
+      </div>
+    </form>
+  </div>
+</section>

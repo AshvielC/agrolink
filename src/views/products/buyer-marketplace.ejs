@@ -1,0 +1,138 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Buyer marketplace</p>
+        <h1>Browse available produce.</h1>
+        <p>Search current farmer listings by product, farm, location, VAT setting, and price range.</p>
+      </div>
+      <a class="btn btn-secondary" href="/dashboard/buyer">Back to dashboard</a>
+    </div>
+
+    <%- include('../partials/form-errors', { errors }) %>
+
+    <form class="filter-card advanced-filter-card" action="/dashboard/buyer/marketplace" method="GET">
+      <label for="q">
+        Search product or farm
+        <input id="q" name="q" type="search" maxlength="80" value="<%= filters.q %>" placeholder="Cassava, tomato, Nadi farm...">
+      </label>
+      <label for="farmer">
+        Farmer or farm name
+        <input id="farmer" name="farmer" type="search" maxlength="80" value="<%= filters.farmer %>" placeholder="Farm name or farmer name">
+      </label>
+      <label for="category">
+        Category
+        <select id="category" name="category">
+          <option value="">All categories</option>
+          <% categories.forEach((category) => { %>
+            <option value="<%= category %>" <%= filters.category === category ? 'selected' : '' %>><%= category %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="location">
+        Location
+        <input id="location" name="location" type="search" maxlength="80" value="<%= filters.location %>" placeholder="Suva, Nadi, Nausori...">
+      </label>
+      <label for="minPrice">
+        Min unit price
+        <input id="minPrice" name="minPrice" type="number" min="0" step="0.01" value="<%= filters.minPrice %>" placeholder="0.00">
+      </label>
+      <label for="maxPrice">
+        Max unit price
+        <input id="maxPrice" name="maxPrice" type="number" min="0" step="0.01" value="<%= filters.maxPrice %>" placeholder="100.00">
+      </label>
+      <label for="vatMode">
+        VAT setting
+        <select id="vatMode" name="vatMode">
+          <option value="">All VAT settings</option>
+          <% vatModes.forEach((mode) => { %>
+            <option value="<%= mode %>" <%= filters.vatMode === mode ? 'selected' : '' %>><%= vatModeLabel(mode) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label for="sort">
+        Sort by
+        <select id="sort" name="sort">
+          <% sortOptions.forEach((option) => { %>
+            <option value="<%= option.value %>" <%= filters.sort === option.value ? 'selected' : '' %>><%= option.label %></option>
+          <% }) %>
+        </select>
+      </label>
+      <div class="filter-actions">
+        <button class="btn btn-primary" type="submit">Search</button>
+        <a class="btn btn-secondary" href="/dashboard/buyer/marketplace">Reset</a>
+      </div>
+    </form>
+
+    <% if (!products.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🧺</span>
+        <h2>No matching produce found.</h2>
+        <p class="muted-text">Try a different search term, category, location, price range, or VAT setting.</p>
+      </div>
+    <% } else { %>
+      <div class="result-summary">
+        <p class="muted-text"><strong><%= products.length %></strong> active listing<%= products.length === 1 ? '' : 's' %> found.</p>
+      </div>
+      <div class="product-grid">
+        <% products.forEach((product) => { %>
+          <article class="product-card product-card-buyer">
+            <a class="product-image-link" href="/dashboard/buyer/products/<%= product._id %>" aria-label="View details for <%= product.name %>">
+              <%- include('../partials/product-image', { product }) %>
+            </a>
+            <div class="product-card-top">
+              <span class="product-category"><%= product.category %></span>
+              <span class="status-pill status-available">Available</span>
+            </div>
+            <h2><a class="plain-link" href="/dashboard/buyer/products/<%= product._id %>"><%= product.name %></a></h2>
+            <p class="muted-text"><%= product.description || 'No description added yet.' %></p>
+
+            <dl class="product-meta">
+              <div>
+                <dt>Quantity</dt>
+                <dd><%= product.quantity %> <%= product.unit %></dd>
+              </div>
+              <div>
+                <dt>Price</dt>
+                <dd><%= formatMoney(product.price, product.currency) %> / <%= product.unit %><br><small><%= vatModeLabel(product.vatMode || 'none') %><% if (product.vatRate) { %> · <%= product.vatRate %>% VAT<% } %></small></dd>
+              </div>
+              <div>
+                <dt>Location</dt>
+                <dd><%= product.location %></dd>
+              </div>
+              <div>
+                <dt>Ready date</dt>
+                <dd><%= formatDate(product.harvestDate) %></dd>
+              </div>
+            </dl>
+
+            <div class="product-analytics-strip" aria-label="Product activity">
+              <span><strong><%= product.analytics?.viewCount || 0 %></strong> views</span>
+              <span><strong><%= product.analytics?.requestCount || 0 %></strong> requests</span>
+              <span><strong><%= product.analytics?.contactCount || 0 %></strong> messages</span>
+            </div>
+
+            <div class="farmer-strip">
+              <div>
+                <span>Farmer</span>
+                <strong><%= product.farmer?.farmerProfile?.farmName || product.farmer?.name || 'Farmer' %></strong>
+                <% if (product.farmer?._id) { %>
+                  <a class="subtle-link" href="/dashboard/buyer/farmers/<%= product.farmer._id %>/profile">View profile</a>
+                <% } %>
+                <% if (product.farmer?.farmerProfile?.farmLocation) { %>
+                  <small><%= product.farmer.farmerProfile.farmLocation %></small>
+                <% } %>
+              </div>
+              <div class="card-action-stack card-action-stack-three">
+                <a class="btn btn-secondary" href="/dashboard/buyer/products/<%= product._id %>">View details</a>
+                <a class="btn btn-primary" href="/dashboard/buyer/products/<%= product._id %>/request">Request to buy</a>
+                <a class="btn btn-secondary" href="/dashboard/buyer/products/<%= product._id %>/contact">Contact farmer</a>
+                <a class="btn btn-secondary" href="/dashboard/reports/new?targetType=product&targetId=<%= product._id %>">Report listing</a>
+              </div>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

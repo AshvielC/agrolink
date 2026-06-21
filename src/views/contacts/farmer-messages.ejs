@@ -1,0 +1,59 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Buyer messages</p>
+        <h1>Contact messages from buyers.</h1>
+        <p>Messages sent through product contact forms are saved here and can be printed.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/farmer">Back to dashboard</a>
+        <% if (messages.length) { %><button class="btn btn-secondary" type="button" data-print>Print this page</button><% } %>
+      </div>
+    </div>
+
+    <% if (!messages.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">✉️</span>
+        <h2>No contact messages yet.</h2>
+        <p class="muted-text">Buyer messages will appear here after they contact you from a product listing.</p>
+      </div>
+    <% } else { %>
+      <div class="table-card responsive-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Buyer</th>
+              <th>Product</th>
+              <th>Subject</th>
+              <th>Message</th>
+              <th>Delivery</th>
+              <th>Print</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% messages.forEach((message) => { %>
+              <tr>
+                <td><%= formatDateTime(message.createdAt) %></td>
+                <td>
+                  <strong><%= message.buyerSnapshot?.name || 'Buyer' %></strong><br>
+                  <% if (message.buyer) { %>
+                    <a class="subtle-link" href="/dashboard/farmer/buyers/<%= message.buyer %>/profile">View buyer profile</a><br>
+                  <% } %>
+                  <span><%= message.buyerEmail %></span>
+                  <% if (message.buyerPhone) { %><br><small><%= message.buyerPhone %></small><% } %>
+                </td>
+                <td><%= message.productSnapshot?.name || 'Product' %></td>
+                <td><%= message.subject %></td>
+                <td><%= message.message %></td>
+                <td><span class="status-pill status-sent">In-app</span></td>
+                <td><a class="subtle-link" href="/dashboard/farmer/messages/<%= message._id %>">View</a><br><a class="subtle-link" href="/dashboard/farmer/messages/<%= message._id %>/print">Print</a></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>

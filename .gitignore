@@ -1,0 +1,45 @@
+node_modules/
+.env
+.env.*
+!.env.example
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+coverage/
+.vs/
+.vscode/
+
+public/uploads/products/*
+!public/uploads/products/.gitkeep
+public/uploads/profiles/*
+!public/uploads/profiles/.gitkeep
+storage/user-documents/*
+!storage/user-documents/.gitkeep
+storage/report-evidence/*
+!storage/report-evidence/.gitkeep
+
+# Local HTTPS certificates
+certs/*
+!certs/.gitkeep
+*.pfx
+*.pem
+*.key
+*.crt
+# Generated hashed frontend assets
+public/dist/assets/
+public/asset-manifest.json
+public/manifest.webmanifest
+public/service-worker.js
+public/offline.html
+# Local runtime output
+logs/
+
+# Local backup and restore-test output
+backups/
+restore-test-output/
+
+# Extra local certificate formats
+*.p12
+*.cer
+*.der

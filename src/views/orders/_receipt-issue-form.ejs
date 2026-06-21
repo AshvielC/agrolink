@@ -1,0 +1,36 @@
+<form class="order-status-form receipt-issue-form" action="/dashboard/farmer/orders/<%= order._id %>/receipt/issue" method="POST" data-confirm="Confirm that payment has been successfully received and issue this receipt?">
+  <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+  <div class="form-section-divider compact-divider">
+    <p class="eyebrow">Successful payment</p>
+    <h3>Issue farmer receipt</h3>
+    <p class="muted-text">Only issue a receipt after payment has been received by cash, M-PAiSA, MyCash, cheque, or direct deposit.</p>
+  </div>
+  <div class="form-row">
+    <label for="paymentMethod-<%= order._id %>">
+      Payment method
+      <select id="paymentMethod-<%= order._id %>" name="paymentMethod" required>
+        <option value="">Choose payment method</option>
+        <option value="cash">Cash</option>
+        <option value="mpaisa">M-PAiSA</option>
+        <option value="mycash">MyCash</option>
+        <option value="cheque">Cheque</option>
+        <option value="direct_deposit">Direct deposit</option>
+      </select>
+    </label>
+    <label for="amountPaid-<%= order._id %>">
+      Amount paid
+      <input id="amountPaid-<%= order._id %>" name="amountPaid" type="number" min="0.01" max="100000000" step="0.01" value="<%= orderTotalPrice(order).toFixed(2) %>" required>
+    </label>
+  </div>
+  <label for="paymentReference-<%= order._id %>">
+    Payment reference, cheque number, or deposit note
+    <input id="paymentReference-<%= order._id %>" name="paymentReference" type="text" maxlength="120" placeholder="Optional reference number">
+  </label>
+  <label for="receiptNote-<%= order._id %>">
+    Receipt note
+    <textarea id="receiptNote-<%= order._id %>" name="receiptNote" rows="3" maxlength="500" placeholder="Optional note shown on the receipt"></textarea>
+  </label>
+  <div class="product-actions order-actions">
+    <button class="btn btn-primary" type="submit">Record payment & issue receipt</button>
+  </div>
+</form>

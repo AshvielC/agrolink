@@ -1,0 +1,139 @@
+<section class="dashboard-section <%= printMode ? 'print-page' : '' %>">
+  <div class="container">
+    <div class="dashboard-hero print-hide">
+      <div>
+        <p class="eyebrow">Admin report review</p>
+        <h1><%= report.targetSnapshot?.title || reasonLabel(report.reason) %></h1>
+        <p>Review evidence, update the status, and record actions taken.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin/reports">All reports</a>
+        <a class="btn btn-secondary" href="/dashboard/admin/reports/<%= report._id %>/print">Print view</a>
+        <button class="btn btn-secondary" type="button" data-print>Print / Save PDF</button>
+      </div>
+    </div>
+
+    <article class="receipt-card">
+      <div class="receipt-header">
+        <div>
+          <p class="eyebrow"><%= reasonLabel(report.reason) %></p>
+          <h1><%= report.targetSnapshot?.title || 'Marketplace report' %></h1>
+          <p class="muted-text">Submitted <%= formatDateTime(report.createdAt) %></p>
+        </div>
+        <span class="status-pill status-<%= report.status %>"><%= formatStatus(report.status) %></span>
+      </div>
+
+      <div class="receipt-grid">
+        <section>
+          <h2>Reporter</h2>
+          <p><strong><%= report.reporterSnapshot?.farmName || report.reporterSnapshot?.organization || report.reporterSnapshot?.name || report.reporter?.name || 'User' %></strong></p>
+          <p><%= report.reporterSnapshot?.email || report.reporter?.email || 'No email recorded' %></p>
+          <p><%= formatStatus(report.reporterRole) %></p>
+        </section>
+        <section>
+          <h2>Reported user</h2>
+          <p><strong><%= report.reportedUserSnapshot?.farmName || report.reportedUserSnapshot?.organization || report.reportedUserSnapshot?.name || report.reportedUser?.name || 'Not recorded' %></strong></p>
+          <p><%= report.reportedUserSnapshot?.email || report.reportedUser?.email || 'No email recorded' %></p>
+          <p><%= formatStatus(report.reportedUserSnapshot?.role || report.reportedUser?.role || '') %></p>
+        </section>
+      </div>
+
+      <section class="receipt-section">
+        <h2>Target</h2>
+        <dl class="product-meta order-meta">
+          <div><dt>Type</dt><dd><%= formatStatus(report.targetType) %></dd></div>
+          <div><dt>Title</dt><dd><%= report.targetSnapshot?.title || 'Not recorded' %></dd></div>
+          <div><dt>Details</dt><dd><%= report.targetSnapshot?.subtitle || 'Not recorded' %></dd></div>
+          <div><dt>Target status</dt><dd><%= formatStatus(report.targetSnapshot?.status || '') %></dd></div>
+        </dl>
+        <% if (report.targetSnapshot?.link) { %>
+          <a class="btn btn-secondary print-hide" href="<%= report.targetSnapshot.link %>">Open related page</a>
+        <% } %>
+      </section>
+
+      <section class="receipt-section">
+        <h2>Description</h2>
+        <div class="note-box"><p><%= report.description %></p></div>
+      </section>
+
+      <% if (report.evidence && report.evidence.length) { %>
+        <section class="receipt-section">
+          <h2>Evidence</h2>
+          <div class="mini-list">
+            <% report.evidence.forEach((file) => { %>
+              <article class="mini-row">
+                <div>
+                  <h3><%= file.originalName || file.filename %></h3>
+                  <p class="muted-text"><%= file.mimetype %> · <%= Math.round((file.size || 0) / 1024) %> KB</p>
+                </div>
+                <div class="button-row print-hide">
+                  <a class="btn btn-secondary" href="/dashboard/admin/reports/<%= report._id %>/evidence/<%= file._id %>/view" target="_blank" rel="noopener">View</a>
+                  <a class="btn btn-secondary" href="/dashboard/admin/reports/<%= report._id %>/evidence/<%= file._id %>/download">Download</a>
+                </div>
+              </article>
+            <% }) %>
+          </div>
+        </section>
+      <% } %>
+
+      <section class="receipt-section print-hide">
+        <h2>Update report</h2>
+        <form class="stacked-form" action="/dashboard/admin/reports/<%= report._id %>/status" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <label for="status">Status</label>
+          <select id="status" name="status" required>
+            <% statuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= report.status === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+            <% }) %>
+          </select>
+
+          <label for="adminAction">Admin action</label>
+          <select id="adminAction" name="adminAction">
+            <% adminActions.forEach((action) => { %>
+              <option value="<%= action %>" <%= (report.adminAction || 'none') === action ? 'selected' : '' %>><%= actionLabel(action) %></option>
+            <% }) %>
+          </select>
+          <p class="field-hint">Suspend user affects the reported user. Remove product only applies when the target is a product.</p>
+
+          <label for="adminNote">Internal/admin note</label>
+          <textarea id="adminNote" name="adminNote" rows="4" maxlength="1200"><%= report.adminNote || '' %></textarea>
+
+          <label for="resolutionNote">Resolution note shown to reporter</label>
+          <textarea id="resolutionNote" name="resolutionNote" rows="4" maxlength="1200"><%= report.resolutionNote || '' %></textarea>
+
+          <button class="btn btn-primary" type="submit">Update report</button>
+        </form>
+      </section>
+
+      <section class="receipt-section">
+        <h2>Admin response</h2>
+        <dl class="product-meta order-meta">
+          <div><dt>Status</dt><dd><%= formatStatus(report.status) %></dd></div>
+          <div><dt>Admin action</dt><dd><%= actionLabel(report.adminAction || 'none') %></dd></div>
+          <div><dt>Reviewed</dt><dd><%= formatDateTime(report.reviewedAt) %></dd></div>
+        </dl>
+        <% if (report.adminNote) { %><div class="note-box"><strong>Admin note</strong><p><%= report.adminNote %></p></div><% } %>
+        <% if (report.resolutionNote) { %><div class="note-box"><strong>Resolution note</strong><p><%= report.resolutionNote %></p></div><% } %>
+      </section>
+
+      <% if (report.history && report.history.length) { %>
+        <section class="receipt-section">
+          <h2>Activity history</h2>
+          <ol class="history-list">
+            <% report.history.forEach((event) => { %>
+              <li>
+                <strong><%= event.action %></strong>
+                <span><%= formatStatus(event.actorRole) %> · <%= formatDateTime(event.createdAt) %></span>
+                <% if (event.note) { %><p><%= event.note %></p><% } %>
+              </li>
+            <% }) %>
+          </ol>
+        </section>
+      <% } %>
+    </article>
+  </div>
+</section>
+
+<% if (printMode) { %>
+  <div data-auto-print="true" hidden></div>
+<% } %>

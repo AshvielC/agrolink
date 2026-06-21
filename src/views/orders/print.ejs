@@ -1,0 +1,246 @@
+<section class="dashboard-section print-page receipt-page">
+  <div class="container narrow-container">
+    <div class="print-actions no-print">
+      <% const backOrdersPath = viewerRole === 'buyer' ? (order.status === 'completed' || order.status === 'rejected' || order.status === 'cancelled' ? '/dashboard/buyer/orders/history' : '/dashboard/buyer/orders') : (order.status === 'completed' || order.status === 'rejected' || order.status === 'cancelled' ? '/dashboard/farmer/orders/history' : '/dashboard/farmer/orders'); %>
+      <a class="btn btn-secondary" href="<%= backOrdersPath %>">Back to orders</a>
+      <button class="btn btn-primary" type="button" data-print>Print / save PDF</button>
+    </div>
+
+    <article class="print-sheet receipt-sheet">
+      <header class="receipt-header">
+        <div>
+          <p class="eyebrow"><%= appName %></p>
+          <h1><%= order.receiptIssuedAt ? (order.receiptStatus === 'cancelled' ? 'Cancelled receipt record' : 'Payment receipt') : 'Order request record' %></h1>
+          <p class="muted-text"><%= orderFinancialNote(order) %></p>
+        </div>
+        <div class="receipt-summary-box">
+          <span class="status-pill <%= order.receiptStatus === 'cancelled' ? 'status-cancelled' : (order.paymentStatus === 'paid' ? 'status-paid' : 'status-pending') %>"><%= order.receiptStatus === 'cancelled' ? 'Receipt cancelled' : (order.paymentStatus === 'paid' ? 'Paid' : 'Payment pending') %></span>
+          <strong><%= order.receiptIssuedAt ? receiptReference(order) : orderReference(order) %></strong>
+          <small><%= order.receiptIssuedAt ? `Issued ${formatDateTime(order.receiptIssuedAt)}` : `Requested ${formatDateTime(order.createdAt)}` %></small>
+        </div>
+      </header>
+
+      <section class="receipt-band">
+        <div>
+          <span><%= order.receiptIssuedAt ? 'Receipt number' : 'Order reference' %></span>
+          <strong><%= order.receiptIssuedAt ? receiptReference(order) : orderReference(order) %></strong>
+        </div>
+        <div>
+          <span>Order reference</span>
+          <strong><%= orderReference(order) %></strong>
+        </div>
+        <div>
+          <span>Payment method</span>
+          <strong><%= order.paymentStatus === 'paid' ? paymentMethodLabel(order.paymentMethod) : 'Not paid yet' %></strong>
+        </div>
+        <div>
+          <span>Amount paid</span>
+          <strong><%= formatMoney(order.paymentStatus === 'paid' ? (order.amountPaid || orderTotalPrice(order)) : orderTotalPrice(order), orderCurrency(order)) %></strong>
+        </div>
+      </section>
+
+      <div class="receipt-two-col">
+        <section class="receipt-party-card">
+          <h2>Buyer</h2>
+          <p><strong><%= orderBuyerName(order) %></strong></p>
+          <p><%= order.buyerContactEmail || order.buyerSnapshot?.email || order.buyer?.email || 'No email recorded' %></p>
+          <% if (order.buyerContactPhone) { %>
+            <p><%= order.buyerContactPhone %></p>
+          <% } %>
+        </section>
+
+        <section class="receipt-party-card">
+          <h2><%= order.receiptIssuedAt ? 'Receipt issued by farmer' : 'Farmer' %></h2>
+          <p><strong><%= orderFarmerName(order) %></strong></p>
+          <p><%= order.farmerSnapshot?.email || order.farmer?.email || 'No email recorded' %></p>
+          <% if (order.productSnapshot?.location) { %>
+            <p><%= order.productSnapshot.location %></p>
+          <% } %>
+        </section>
+      </div>
+
+      <section class="receipt-line-items" aria-labelledby="receipt-items-heading">
+        <div class="receipt-section-heading">
+          <div>
+            <p class="eyebrow">Produce details</p>
+            <h2 id="receipt-items-heading"><%= order.paymentStatus === 'paid' ? 'Items paid for' : 'Items requested' %></h2>
+          </div>
+          <% if (order.productSnapshot?.imagePath) { %>
+            <img class="receipt-product-thumb" src="<%= order.productSnapshot.imagePath %>" alt="Photo of <%= orderProductName(order) %>">
+          <% } %>
+        </div>
+
+        <div class="receipt-table-wrap">
+          <table class="receipt-table">
+            <thead>
+              <tr>
+                <th scope="col">Product</th>
+                <th scope="col">Category</th>
+                <th scope="col">Quantity</th>
+                <th scope="col">Unit price</th>
+                <th scope="col">Subtotal excl. VAT</th>
+                <th scope="col">VAT</th>
+                <th scope="col">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><%= orderProductName(order) %></td>
+                <td><%= order.productSnapshot?.category || 'Produce' %></td>
+                <td><%= order.requestedQuantity %> <%= order.unit %></td>
+                <td><%= formatMoney(orderUnitPrice(order), orderCurrency(order)) %> / <%= order.unit %><br><small><%= orderVatSummary(order) %></small></td>
+                <td><%= formatMoney(orderSubtotal(order), orderCurrency(order)) %></td>
+                <td><%= formatMoney(orderVatAmount(order), orderCurrency(order)) %></td>
+                <td><%= formatMoney(orderTotalPrice(order), orderCurrency(order)) %></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row" colspan="6"><%= order.paymentStatus === 'paid' ? 'Total paid' : 'Total price' %></th>
+                <td><%= formatMoney(order.paymentStatus === 'paid' ? (order.amountPaid || orderTotalPrice(order)) : orderTotalPrice(order), orderCurrency(order)) %></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+        <p class="receipt-note"><strong><%= order.receiptIssuedAt ? 'Receipt note:' : 'Order note:' %></strong> <%= order.receiptIssuedAt ? 'This receipt was issued by the farmer after recording successful payment.' : 'This is an order/request record and is not proof of payment.' %></p>
+      </section>
+
+      <section class="receipt-detail-grid">
+        <div>
+          <span>Payment status</span>
+          <strong><%= formatStatus(order.paymentStatus || 'paid') %></strong>
+        </div>
+        <div>
+          <span>Payment received</span>
+          <strong><%= order.paymentStatus === 'paid' ? formatDateTime(order.paymentConfirmedAt || order.receiptIssuedAt) : 'Not paid yet' %></strong>
+        </div>
+        <div>
+          <span>Order status</span>
+          <strong><%= formatStatus(order.status) %></strong>
+        </div>
+        <% if (order.paymentReference) { %>
+          <div>
+            <span>Payment reference</span>
+            <strong><%= order.paymentReference %></strong>
+          </div>
+        <% } %>
+        <div>
+          <span>Product location</span>
+          <strong><%= order.productSnapshot?.location || 'Not set' %></strong>
+        </div>
+        <div>
+          <span>Inventory status</span>
+          <strong><%= order.inventoryDeducted ? 'Deducted from stock' : 'Not currently deducted' %></strong>
+        </div>
+      </section>
+
+      <% if (order.fulfillment && order.fulfillment.status && order.fulfillment.status !== 'not_scheduled') { %>
+        <section class="receipt-party-card receipt-fulfillment-section">
+          <h2>Pickup / delivery details</h2>
+          <dl class="profile-details compact-profile-details">
+            <div><dt>Status</dt><dd><%= formatStatus(order.fulfillment.status) %></dd></div>
+            <div><dt>Method</dt><dd><%= order.fulfillment.method ? formatStatus(order.fulfillment.method) : 'Not set' %></dd></div>
+            <div><dt>Date</dt><dd><%= formatDate(order.fulfillment.requestedDate) %></dd></div>
+            <div><dt>Time</dt><dd><%= order.fulfillment.requestedTime || 'Not set' %></dd></div>
+            <div><dt>Location / address</dt><dd><%= order.fulfillment.location || 'Not set' %></dd></div>
+            <% if (order.fulfillment.completedAt) { %><div><dt>Completed</dt><dd><%= formatDateTime(order.fulfillment.completedAt) %></dd></div><% } %>
+          </dl>
+          <% if (order.fulfillment.note) { %><p><strong>Buyer schedule note:</strong> <%= order.fulfillment.note %></p><% } %>
+          <% if (order.fulfillment.farmerNote) { %><p><strong>Farmer schedule note:</strong> <%= order.fulfillment.farmerNote %></p><% } %>
+        </section>
+      <% } %>
+
+      <section class="receipt-two-col receipt-payment-details">
+        <article class="receipt-party-card">
+          <h2>Farmer payment details on file</h2>
+          <dl class="profile-details compact-profile-details">
+            <div><dt>Bank name</dt><dd><%= order.farmerPaymentSnapshot?.bankName || order.farmer?.farmerProfile?.bankName || 'Not recorded' %></dd></div>
+            <div><dt>Bank account number</dt><dd><%= order.farmerPaymentSnapshot?.bankAccountNumber || order.farmer?.farmerProfile?.bankAccountNumber || 'Not recorded' %></dd></div>
+            <div><dt>M-PAiSA number</dt><dd><%= order.farmerPaymentSnapshot?.mpaisaNumber || order.farmer?.farmerProfile?.mpaisaNumber || 'Not recorded' %></dd></div>
+            <div><dt>MyCash number</dt><dd><%= order.farmerPaymentSnapshot?.mycashNumber || order.farmer?.farmerProfile?.mycashNumber || 'Not recorded' %></dd></div>
+          </dl>
+        </article>
+
+        <article class="receipt-party-card">
+          <h2>Payment summary</h2>
+          <dl class="profile-details compact-profile-details">
+            <div><dt>Method</dt><dd><%= paymentMethodLabel(order.paymentMethod) %></dd></div>
+            <div><dt>Amount paid</dt><dd><%= order.paymentStatus === 'paid' ? formatMoney(order.amountPaid || orderTotalPrice(order), orderCurrency(order)) : 'Not paid yet' %></dd></div>
+            <div><dt>Issued date</dt><dd><%= order.receiptIssuedAt ? formatDateTime(order.receiptIssuedAt) : 'Not issued' %></dd></div>
+            <div><dt>Issued by</dt><dd><%= orderFarmerName(order) %></dd></div>
+          </dl>
+        </article>
+      </section>
+
+
+      <% if (order.receiptStatus === 'cancelled') { %>
+        <section class="receipt-party-card receipt-cancelled-section">
+          <h2>Receipt cancellation</h2>
+          <dl class="profile-details compact-profile-details">
+            <div><dt>Cancelled</dt><dd><%= formatDateTime(order.receiptCancelledAt) %></dd></div>
+            <div><dt>Reason</dt><dd><%= order.receiptCancellationReason || 'Not recorded' %></dd></div>
+          </dl>
+          <p class="muted-text">The original receipt remains in the audit trail, but it is no longer an active receipt for this order.</p>
+        </section>
+      <% } %>
+
+      <% if (order.deliveryNote || order.message || order.farmerResponse || order.receiptNote) { %>
+        <section class="receipt-notes-grid">
+          <% if (order.deliveryNote) { %>
+            <div class="note-box">
+              <strong>Pickup/delivery note</strong>
+              <p><%= order.deliveryNote %></p>
+            </div>
+          <% } %>
+
+          <% if (order.message) { %>
+            <div class="note-box">
+              <strong>Buyer message</strong>
+              <p><%= order.message %></p>
+            </div>
+          <% } %>
+
+          <% if (order.farmerResponse) { %>
+            <div class="note-box farmer-response-box">
+              <strong>Farmer response</strong>
+              <p><%= order.farmerResponse %></p>
+            </div>
+          <% } %>
+
+          <% if (order.receiptNote) { %>
+            <div class="note-box farmer-response-box">
+              <strong>Receipt note</strong>
+              <p><%= order.receiptNote %></p>
+            </div>
+          <% } %>
+        </section>
+      <% } %>
+
+      <% if (order.history && order.history.length) { %>
+        <section class="print-history receipt-history">
+          <h2>Activity history</h2>
+          <ol class="history-list">
+            <% order.history.forEach((event) => { %>
+              <li>
+                <strong><%= event.action %></strong>
+                <span><%= formatStatus(event.actorRole) %> · <%= formatDateTime(event.createdAt) %></span>
+                <% if (event.note) { %>
+                  <p><%= event.note %></p>
+                <% } %>
+              </li>
+            <% }) %>
+          </ol>
+        </section>
+      <% } %>
+
+      <footer class="receipt-footer-note">
+        <p><%= order.receiptIssuedAt ? 'This receipt/order record was issued by the farmer through' : 'This order request record was generated by' %> <%= appName %>. It is based on the order record stored in the marketplace system.</p>
+      </footer>
+    </article>
+  </div>
+</section>
+
+<% if (typeof autoPrint !== 'undefined' && autoPrint) { %>
+  <div data-auto-print="true" hidden></div>
+<% } %>

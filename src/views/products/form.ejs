@@ -1,0 +1,125 @@
+<section class="auth-section">
+  <div class="container narrow-container">
+    <div class="auth-card">
+      <p class="eyebrow"><%= mode === 'create' ? 'New produce listing' : 'Edit produce listing' %></p>
+      <h1><%= mode === 'create' ? 'Add produce for buyers to discover.' : 'Update your produce listing.' %></h1>
+      <p class="muted-text">
+        Keep your listing clear and honest so buyers can quickly decide whether to contact you.
+        You can keep up to <%= maxProductsPerFarmer %> active product listings, and each product can have one image up to 10MB.
+      </p>
+
+      <%- include('../partials/form-errors', { errors }) %>
+
+      <form class="stacked-form" action="<%= formAction %>" method="POST" enctype="multipart/form-data" novalidate>
+        <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+
+        <label for="name">
+          Product name
+          <input id="name" name="name" type="text" maxlength="90" value="<%= product.name || '' %>" placeholder="Example: Fresh cassava" required>
+        </label>
+
+        <div class="form-row">
+          <label for="category">
+            Category
+            <select id="category" name="category" required>
+              <option value="">Choose category</option>
+              <% categories.forEach((category) => { %>
+                <option value="<%= category %>" <%= product.category === category ? 'selected' : '' %>><%= category %></option>
+              <% }) %>
+            </select>
+          </label>
+
+          <label for="location">
+            Location
+            <input id="location" name="location" type="text" maxlength="120" value="<%= product.location || '' %>" placeholder="Example: Nausori" required>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label for="quantity">
+            Quantity
+            <input id="quantity" name="quantity" type="number" min="0.01" step="0.01" value="<%= product.quantity || '' %>" placeholder="Example: 100" required>
+          </label>
+
+          <label for="unit">
+            Unit
+            <select id="unit" name="unit" required>
+              <option value="">Choose unit</option>
+              <% units.forEach((unit) => { %>
+                <option value="<%= unit %>" <%= product.unit === unit ? 'selected' : '' %>><%= unit %></option>
+              <% }) %>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label for="price">
+            Price per unit, FJD
+            <input id="price" name="price" type="number" min="0.01" step="0.01" value="<%= product.price || '' %>" placeholder="Example: 2.50" required>
+          </label>
+
+          <label for="vatMode">
+            VAT pricing
+            <select id="vatMode" name="vatMode">
+              <option value="none" <%= (product.vatMode || 'none') === 'none' ? 'selected' : '' %>>No VAT added</option>
+              <option value="inclusive" <%= product.vatMode === 'inclusive' ? 'selected' : '' %>>Price is VAT inclusive</option>
+              <option value="exclusive" <%= product.vatMode === 'exclusive' ? 'selected' : '' %>>Price is VAT exclusive</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-row">
+          <label for="vatRate">
+            VAT rate, %
+            <input id="vatRate" name="vatRate" type="number" min="0" max="100" step="0.01" value="<%= product.vatRate || 0 %>" placeholder="Example: 15">
+            <span class="field-hint">Use 0 when VAT does not apply.</span>
+          </label>
+
+          <label for="harvestDate">
+            Harvest date / ready date
+            <input id="harvestDate" name="harvestDate" type="date" value="<%= product.harvestDate ? new Date(product.harvestDate).toISOString().slice(0, 10) : '' %>">
+          </label>
+        </div>
+
+        <label for="description">
+          Description
+          <textarea id="description" name="description" rows="5" maxlength="600" placeholder="Add grade, quality, packaging, delivery, or pickup information."><%= product.description || '' %></textarea>
+        </label>
+
+        <label for="productImage">
+          Product photo
+          <input id="productImage" name="productImage" type="file" accept="image/jpeg,image/png,image/webp">
+          <span class="field-hint">Upload one JPG, PNG, or WebP image. Maximum file size: 10MB.</span>
+        </label>
+
+        <% if (mode === 'edit' && product.image && product.image.path) { %>
+          <div class="current-image-card">
+            <img src="<%= product.image.path %>" alt="Current photo for <%= product.name || 'this product' %>">
+            <div>
+              <strong>Current product photo</strong>
+              <span><%= product.image.originalName || product.image.filename || 'Uploaded image' %></span>
+              <label class="checkbox-row" for="removeImage">
+                <input id="removeImage" name="removeImage" type="checkbox" value="on">
+                Remove current photo
+              </label>
+            </div>
+          </div>
+        <% } %>
+
+        <label for="status">
+          Availability status
+          <select id="status" name="status">
+            <% statuses.forEach((status) => { %>
+              <option value="<%= status %>" <%= (product.status || 'available') === status ? 'selected' : '' %>><%= status === 'unavailable' ? 'Not available' : formatStatus(status) %></option>
+            <% }) %>
+          </select>
+        </label>
+
+        <div class="form-actions split-actions">
+          <a class="btn btn-secondary" href="/dashboard/farmer/products">Cancel</a>
+          <button class="btn btn-primary" type="submit"><%= mode === 'create' ? 'Create listing' : 'Save changes' %></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

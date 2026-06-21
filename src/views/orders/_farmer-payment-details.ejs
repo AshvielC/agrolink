@@ -1,0 +1,43 @@
+<% const paymentInfo = farmerPaymentDetails(source); %>
+<% const paymentReady = source?.status === 'accepted'; %>
+<section class="payment-instructions <%= paymentReady ? 'payment-instructions-ready' : '' %>">
+  <div class="payment-instructions-header">
+    <div>
+      <p class="eyebrow">Payment information</p>
+      <h2>Farmer payment details</h2>
+    </div>
+    <% if (paymentReady) { %>
+      <span class="status-pill status-accepted">Ready for payment</span>
+    <% } else if (source?.status === 'pending') { %>
+      <span class="status-pill status-pending">Wait for acceptance</span>
+    <% } %>
+  </div>
+
+  <% if (paymentReady) { %>
+    <p class="muted-text">This request has been accepted. Use the details below to pay the farmer, then the farmer can record the successful payment and issue the official receipt.</p>
+  <% } else { %>
+    <p class="muted-text">Review the farmer's payment options now, but only make payment after the farmer accepts your request.</p>
+  <% } %>
+
+  <% if (hasFarmerPaymentDetails(source)) { %>
+    <dl class="profile-details compact-profile-details payment-detail-list">
+      <% if (paymentInfo.bankName || paymentInfo.bankAccountNumber) { %>
+        <div><dt>Direct deposit bank</dt><dd><%= paymentInfo.bankName || 'Not added' %></dd></div>
+        <div><dt>Bank account number</dt><dd><%= paymentInfo.bankAccountNumber || 'Not added' %></dd></div>
+      <% } %>
+      <% if (paymentInfo.mpaisaNumber) { %>
+        <div><dt>M-PAiSA number</dt><dd><%= paymentInfo.mpaisaNumber %></dd></div>
+      <% } %>
+      <% if (paymentInfo.mycashNumber) { %>
+        <div><dt>MyCash number</dt><dd><%= paymentInfo.mycashNumber %></dd></div>
+      <% } %>
+      <div><dt>Cash, cheque, or other method</dt><dd>Confirm collection or cheque details with the farmer before paying.</dd></div>
+    </dl>
+  <% } else { %>
+    <div class="empty-state compact-empty payment-empty-state">
+      <span class="empty-icon">💳</span>
+      <h2>No payment details added yet.</h2>
+      <p class="muted-text">Ask the farmer to update their profile or send payment instructions before you pay.</p>
+    </div>
+  <% } %>
+</section>

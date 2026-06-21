@@ -1,0 +1,131 @@
+<section class="dashboard-section <%= printMode ? 'print-section' : '' %>">
+  <div class="container">
+    <% if (!printMode) { %>
+    <div class="dashboard-hero print-hide">
+      <div>
+        <p class="eyebrow">Admin</p>
+        <h1>User details.</h1>
+        <p>Review account, approval, profile, verification documents, and document decisions.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin/users">Back to users</a>
+        <a class="btn btn-primary" href="/dashboard/admin/users/<%= user._id %>/print">Print / save PDF</a>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (printMode) { %>
+      <div class="print-actions no-print">
+        <a class="btn btn-secondary" href="/dashboard/admin/users/<%= user._id %>">Back to screen view</a>
+        <button class="btn btn-primary" type="button" data-print>Print / save PDF</button>
+      </div>
+      <div class="print-header">
+        <h1>User details</h1>
+        <p><%= appName %> · Generated <%= formatDateTime(new Date()) %></p>
+      </div>
+    <% } %>
+
+    <article class="order-card user-detail-card">
+      <div class="order-card-topline">
+        <span class="status-pill status-<%= user.accountStatus || 'active' %>"><%= formatStatus(user.accountStatus || 'active') %></span>
+        <span class="status-pill status-<%= user.documentReviewStatus || 'pending' %>">Documents: <%= formatStatus(user.documentReviewStatus || 'pending') %></span>
+        <span class="status-pill"><%= formatStatus(user.role) %></span>
+      </div>
+      <h2><%= user.name %></h2>
+      <% if (user.documentReviewNote) { %>
+        <p class="muted-text"><strong>Document review note:</strong> <%= user.documentReviewNote %></p>
+      <% } %>
+      <dl class="product-meta order-meta">
+        <div><dt>Email</dt><dd><%= user.email %></dd></div>
+        <div><dt>Phone</dt><dd><%= user.phone || user.farmerProfile?.phone || user.buyerProfile?.phone || 'Not provided' %></dd></div>
+        <div><dt>Joined</dt><dd><%= formatDateTime(user.createdAt) %></dd></div>
+        <div><dt>Approved</dt><dd><%= user.approvedAt ? formatDateTime(user.approvedAt) : 'Not approved yet' %></dd></div>
+        <div><dt>Products</dt><dd><%= stats.productCount %></dd></div>
+        <div><dt>Orders</dt><dd><%= stats.orderCount %></dd></div>
+        <div><dt>Messages</dt><dd><%= stats.messageCount %></dd></div>
+      </dl>
+
+      <% if (user.role === 'farmer') { %>
+        <h3>Farmer profile</h3>
+        <dl class="product-meta order-meta">
+          <div><dt>Farm/business name</dt><dd><%= user.farmerProfile?.farmName || 'Not provided' %></dd></div>
+          <div><dt>Owner name</dt><dd><%= user.farmerProfile?.ownerName || user.name %></dd></div>
+          <div><dt>Location</dt><dd><%= user.farmerProfile?.farmLocation || 'Not provided' %></dd></div>
+          <div><dt>Address</dt><dd><%= user.farmerProfile?.farmAddress || 'Not provided' %></dd></div>
+          <div><dt>Main products</dt><dd><%= user.farmerProfile?.mainProducts || 'Not provided' %></dd></div>
+          <div><dt>M-PAiSA</dt><dd><%= user.farmerProfile?.mpaisaNumber || 'Not provided' %></dd></div>
+          <div><dt>MyCash</dt><dd><%= user.farmerProfile?.mycashNumber || 'Not provided' %></dd></div>
+          <div><dt>Bank</dt><dd><%= user.farmerProfile?.bankName || 'Not provided' %></dd></div>
+          <div><dt>Bank account</dt><dd><%= user.farmerProfile?.bankAccountNumber || 'Not provided' %></dd></div>
+        </dl>
+      <% } %>
+
+      <% if (user.role === 'buyer') { %>
+        <h3>Buyer profile</h3>
+        <dl class="product-meta order-meta">
+          <div><dt>Business/organization</dt><dd><%= user.buyerProfile?.organization || 'Not provided' %></dd></div>
+          <div><dt>Contact name</dt><dd><%= user.buyerProfile?.contactName || user.name %></dd></div>
+          <div><dt>Buying location</dt><dd><%= user.buyerProfile?.buyingLocation || 'Not provided' %></dd></div>
+          <div><dt>Delivery address</dt><dd><%= user.buyerProfile?.deliveryAddress || 'Not provided' %></dd></div>
+          <div><dt>Interested products</dt><dd><%= user.buyerProfile?.interestedProducts || 'Not provided' %></dd></div>
+          <div><dt>Preferred contact</dt><dd><%= formatStatus(user.buyerProfile?.preferredContactMethod || 'email') %></dd></div>
+        </dl>
+      <% } %>
+
+      <h3>Verification documents</h3>
+      <% const verificationDocs = [
+        { type: 'tin', key: 'tinDocument', label: 'TIN document', doc: user.verificationDocuments?.tinDocument },
+        { type: 'business-registration', key: 'businessRegistrationCertificate', label: 'Business registration', doc: user.verificationDocuments?.businessRegistrationCertificate }
+      ]; %>
+
+      <div class="mini-list document-review-list">
+        <% verificationDocs.forEach((item) => { %>
+          <article class="mini-row document-review-card">
+            <div>
+              <span class="status-pill status-<%= item.doc?.status || 'pending' %>"><%= formatStatus(item.doc?.status || 'pending') %></span>
+              <h4><%= item.label %></h4>
+              <% if (item.doc?.filename) { %>
+                <p class="muted-text"><%= item.doc.originalName || item.doc.filename %></p>
+                <p class="muted-text">Uploaded: <%= formatDateTime(item.doc.uploadedAt) %><% if (item.doc.reviewedAt) { %> · Reviewed: <%= formatDateTime(item.doc.reviewedAt) %><% } %></p>
+                <% if (item.doc.rejectionReason) { %><p><strong>Rejection reason:</strong> <%= item.doc.rejectionReason %></p><% } %>
+                <% if (!printMode) { %>
+                  <p><a class="subtle-link" target="_blank" rel="noopener" href="/dashboard/admin/users/<%= user._id %>/documents/<%= item.type %>/view">View online</a> · <a class="subtle-link" href="/dashboard/admin/users/<%= user._id %>/documents/<%= item.type %>/download">Download</a></p>
+                  <% if (user.role !== 'admin') { %>
+                    <form class="admin-inline-form document-decision-form" action="/dashboard/admin/users/<%= user._id %>/documents/<%= item.type %>/status" method="POST" data-confirm="Save this document review decision?">
+                      <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+                      <select name="documentStatus" aria-label="Document status for <%= item.label %>">
+                        <% ['pending', 'approved', 'rejected'].forEach((status) => { %>
+                          <option value="<%= status %>" <%= (item.doc?.status || 'pending') === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+                        <% }) %>
+                      </select>
+                      <input name="rejectionReason" type="text" maxlength="400" placeholder="Reason required if rejected" value="<%= item.doc?.rejectionReason || '' %>">
+                      <button class="btn btn-secondary" type="submit">Save document decision</button>
+                    </form>
+                  <% } %>
+                <% } %>
+              <% } else { %>
+                <p class="muted-text">Not uploaded.</p>
+              <% } %>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+
+      <% if (!printMode && user.role !== 'admin') { %>
+        <h3>Account approval</h3>
+        <p class="muted-text">Both verification documents must be approved before the account can be activated.</p>
+        <form class="admin-inline-form" action="/dashboard/admin/users/<%= user._id %>/status" method="POST" data-confirm="Update this user's account status?">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <select name="accountStatus" aria-label="Account status for <%= user.name %>">
+            <% ['active', 'pending_approval', 'suspended'].forEach((status) => { %>
+              <option value="<%= status %>" <%= (user.accountStatus || 'active') === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+            <% }) %>
+          </select>
+          <input name="statusNote" type="text" maxlength="300" placeholder="Optional note" value="<%= user.statusNote || '' %>">
+          <button class="btn btn-primary" type="submit">Update account status</button>
+        </form>
+      <% } %>
+    </article>
+
+  </div>
+</section>

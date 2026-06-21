@@ -1,0 +1,51 @@
+<section class="dashboard-section print-section">
+  <div class="container wide-container">
+    <div class="print-actions no-print">
+      <a class="btn btn-secondary" href="/dashboard/admin/exports">Back to export center</a>
+      <a class="btn btn-secondary" href="/dashboard/admin/exports/<%= dataset %>/csv?<%= new URLSearchParams(filters).toString() %>">Download CSV</a>
+      <button class="btn btn-primary" type="button" data-print>Print / save PDF</button>
+    </div>
+
+    <div class="print-header">
+      <h1><%= datasetLabel %> export</h1>
+      <p><%= appName %> · Generated <%= formatDateTime(generatedAt) %></p>
+      <p>Rows shown: <%= rows.length %><% if (rows.length >= maxRows) { %> · Limited to latest <%= maxRows %> rows<% } %></p>
+      <p>
+        Filters:
+        <% const activeFilters = Object.entries(filters).filter(([key, value]) => value); %>
+        <% if (!activeFilters.length) { %>
+          None
+        <% } else { %>
+          <% activeFilters.forEach(([key, value], index) => { %>
+            <%= index ? ' · ' : '' %><%= key %>: <%= value %>
+          <% }) %>
+        <% } %>
+      </p>
+    </div>
+
+    <% if (!rows.length) { %>
+      <div class="empty-state"><span class="empty-icon">📄</span><h2>No records found for this export.</h2></div>
+    <% } else { %>
+      <div class="table-card responsive-table export-table-card">
+        <table>
+          <thead>
+            <tr>
+              <% columns.forEach((column) => { %>
+                <th><%= column.label %></th>
+              <% }) %>
+            </tr>
+          </thead>
+          <tbody>
+            <% rows.forEach((row) => { %>
+              <tr>
+                <% columns.forEach((column) => { %>
+                  <td><%= column.value(row) %></td>
+                <% }) %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>

@@ -1,0 +1,59 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow"><%= mode === 'sent' ? 'Sent' : 'Inbox' %></p>
+        <h1><%= mode === 'sent' ? 'Sent messages' : 'Message center' %></h1>
+        <p><%= mode === 'sent' ? 'Messages you have sent are kept here for your records.' : 'Read buyer, farmer, and admin messages from one place.' %></p>
+      </div>
+      <div class="card-action-stack">
+        <% if (mode === 'sent') { %>
+          <a class="btn btn-primary" href="/dashboard/messages">Inbox</a>
+        <% } else { %>
+          <a class="btn btn-secondary" href="/dashboard/messages/sent">Sent messages</a>
+        <% } %>
+        <% if (messages.length) { %>
+          <button class="btn btn-secondary" type="button" data-print>Print this page</button>
+        <% } %>
+      </div>
+    </div>
+
+    <% if (!messages.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">✉️</span>
+        <h2>No messages found.</h2>
+        <p class="muted-text"><%= mode === 'sent' ? 'Messages you send will appear here.' : 'New messages from other users will appear here.' %></p>
+      </div>
+    <% } else { %>
+      <div class="message-list">
+        <% messages.forEach((message) => { %>
+          <% const otherUser = mode === 'sent' ? message.recipient : message.sender; %>
+          <article class="message-card <%= !message.readAt && mode !== 'sent' ? 'message-unread' : '' %>">
+            <div class="message-card-head">
+              <div>
+                <p class="eyebrow"><%= mode === 'sent' ? 'To' : 'From' %>: <%= otherUser?.farmerProfile?.farmName || otherUser?.buyerProfile?.organization || otherUser?.name || (mode === 'sent' ? message.recipientSnapshot?.name : message.senderSnapshot?.name) || 'User' %></p>
+                <h2><a href="/dashboard/messages/<%= message._id %>"><%= message.subject %></a></h2>
+                <p class="muted-text"><%= formatDateTime(message.createdAt) %> · <%= formatStatus(message.messageType) %></p>
+              </div>
+              <% if (!message.readAt && mode !== 'sent') { %>
+                <span class="status-pill status-pending">Unread</span>
+              <% } %>
+            </div>
+            <p><%= message.body.length > 180 ? `${message.body.slice(0, 180)}...` : message.body %></p>
+            <% if (message.productSnapshot?.name || message.orderSnapshot?.reference) { %>
+              <p class="muted-text">
+                <% if (message.orderSnapshot?.reference) { %>Order: <%= message.orderSnapshot.reference %><% } %>
+                <% if (message.productSnapshot?.name) { %><%= message.orderSnapshot?.reference ? ' · ' : '' %>Product: <%= message.productSnapshot.name %><% } %>
+              </p>
+            <% } %>
+            <div class="product-actions order-actions">
+              <a class="btn btn-secondary" href="/dashboard/messages/<%= message._id %>">Open</a>
+              <a class="btn btn-secondary" href="/dashboard/messages/<%= message._id %>/reply">Reply</a>
+              <a class="btn btn-secondary" href="/dashboard/messages/<%= message._id %>/print">Print</a>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>

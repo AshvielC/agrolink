@@ -1,0 +1,114 @@
+<section class="dashboard-section <%= printMode ? 'print-page' : '' %>">
+  <div class="container">
+    <div class="dashboard-hero print-hide">
+      <div>
+        <p class="eyebrow">Admin reports</p>
+        <h1>Reports and disputes</h1>
+        <p>Review marketplace complaints, evidence, and admin actions.</p>
+      </div>
+      <div class="card-action-stack">
+        <a class="btn btn-secondary" href="/dashboard/admin">Admin dashboard</a>
+        <% if (reports.length) { %>
+          <a class="btn btn-secondary" href="/dashboard/admin/reports/print?<%= new URLSearchParams(filters).toString() %>">Print view</a>
+          <button class="btn btn-secondary" type="button" data-print>Print / Save PDF</button>
+        <% } %>
+      </div>
+    </div>
+
+    <form class="filter-bar print-hide" action="/dashboard/admin/reports" method="GET">
+      <label>
+        Search
+        <input type="search" name="q" value="<%= filters.q %>" placeholder="User, farm, product, issue">
+      </label>
+      <label>
+        Status
+        <select name="status">
+          <option value="">All statuses</option>
+          <% statuses.forEach((status) => { %>
+            <option value="<%= status %>" <%= filters.status === status ? 'selected' : '' %>><%= formatStatus(status) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label>
+        Reason
+        <select name="reason">
+          <option value="">All reasons</option>
+          <% reasons.forEach((reason) => { %>
+            <option value="<%= reason %>" <%= filters.reason === reason ? 'selected' : '' %>><%= reasonLabel(reason) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <label>
+        Target
+        <select name="targetType">
+          <option value="">All targets</option>
+          <% targetTypes.forEach((targetType) => { %>
+            <option value="<%= targetType %>" <%= filters.targetType === targetType ? 'selected' : '' %>><%= formatStatus(targetType) %></option>
+          <% }) %>
+        </select>
+      </label>
+      <button class="btn btn-primary" type="submit">Search</button>
+      <a class="btn btn-secondary" href="/dashboard/admin/reports">Reset</a>
+    </form>
+
+    <% if (printMode) { %>
+      <article class="receipt-card print-summary-card">
+        <p class="eyebrow">Reports list</p>
+        <h1>Reports and disputes</h1>
+        <p>Generated <%= formatDateTime(new Date()) %></p>
+      </article>
+    <% } %>
+
+    <% if (!reports.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🛡️</span>
+        <h2>No reports found.</h2>
+        <p class="muted-text">New buyer/farmer reports will appear here.</p>
+      </div>
+    <% } else { %>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Report</th>
+              <th>Reporter</th>
+              <th>Reported user</th>
+              <th>Status</th>
+              <th>Admin action</th>
+              <th>Submitted</th>
+              <% if (!printMode) { %><th>Actions</th><% } %>
+            </tr>
+          </thead>
+          <tbody>
+            <% reports.forEach((report) => { %>
+              <tr>
+                <td>
+                  <strong><%= report.targetSnapshot?.title || reasonLabel(report.reason) %></strong><br>
+                  <span class="muted-text"><%= reasonLabel(report.reason) %> · <%= formatStatus(report.targetType) %></span>
+                </td>
+                <td>
+                  <%= report.reporterSnapshot?.farmName || report.reporterSnapshot?.organization || report.reporterSnapshot?.name || 'User' %><br>
+                  <span class="muted-text"><%= report.reporterSnapshot?.email || '' %></span>
+                </td>
+                <td>
+                  <%= report.reportedUserSnapshot?.farmName || report.reportedUserSnapshot?.organization || report.reportedUserSnapshot?.name || 'Not recorded' %><br>
+                  <span class="muted-text"><%= report.reportedUserSnapshot?.email || '' %></span>
+                </td>
+                <td><span class="status-pill status-<%= report.status %>"><%= formatStatus(report.status) %></span></td>
+                <td><%= actionLabel(report.adminAction || 'none') %></td>
+                <td><%= formatDateTime(report.createdAt) %></td>
+                <% if (!printMode) { %>
+                  <td><a class="btn btn-secondary btn-small" href="/dashboard/admin/reports/<%= report._id %>">Open</a></td>
+                <% } %>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</section>
+
+<% if (printMode) { %>
+  <div data-auto-print="true" hidden></div>
+<% } %>

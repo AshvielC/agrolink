@@ -1,0 +1,45 @@
+<section class="dashboard-section">
+  <div class="container">
+    <div class="dashboard-hero">
+      <div>
+        <p class="eyebrow">Notifications</p>
+        <h1>Recent account activity.</h1>
+        <p>See updates from buyers and farmers when requests are created, accepted, cancelled, completed, or rejected.</p>
+      </div>
+      <% if (notifications.some((notification) => !notification.readAt)) { %>
+        <form action="/dashboard/notifications/read-all" method="POST">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>">
+          <button class="btn btn-secondary" type="submit">Mark all read</button>
+        </form>
+      <% } %>
+    </div>
+
+    <% if (!notifications.length) { %>
+      <div class="empty-state">
+        <span class="empty-icon">🔔</span>
+        <h2>No notifications yet.</h2>
+        <p class="muted-text">Order updates and marketplace activity will appear here.</p>
+      </div>
+    <% } else { %>
+      <div class="notification-list">
+        <% notifications.forEach((notification) => { %>
+          <article class="notification-card <%= notification.readAt ? '' : 'is-unread' %>">
+            <div>
+              <div class="notification-heading-row">
+                <h2><%= notification.title %></h2>
+                <% if (!notification.readAt) { %>
+                  <span class="unread-dot">Unread</span>
+                <% } %>
+              </div>
+              <p><%= notification.message %></p>
+              <span class="muted-text"><%= formatDateTime(notification.createdAt) %></span>
+            </div>
+            <div class="product-actions notification-actions">
+              <a class="btn <%= notification.readAt ? 'btn-secondary' : 'btn-primary' %>" href="/dashboard/notifications/<%= notification._id %>">Open message</a>
+            </div>
+          </article>
+        <% }) %>
+      </div>
+    <% } %>
+  </div>
+</section>
